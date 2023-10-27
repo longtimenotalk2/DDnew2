@@ -19,8 +19,12 @@ impl Unit {
         }
     }
 
-    pub fn show(&self) {
-        println!("{}, {}, {}, {}", self.str(), self.skl(), self.spd(), self.hurt);
+    pub fn reset(&mut self) {
+        self.hurt = 0;
+    }
+
+    pub fn state(&self) -> String {
+        format!("{}, {}, {}, {}\n", self.str(), self.skl(), self.spd(), self.hurt)
     }
 
     pub fn hurt_lv(&self) -> i32 {
