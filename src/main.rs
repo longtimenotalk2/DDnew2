@@ -7,10 +7,10 @@ use game::solo::Solo;
 fn test1() {
     let dice = Dice::new(114514);
     let unit0 = Unit::new(15, 13, 13);
-    let unit1 = Unit::new(13, 15, 13);
+    let unit1 = Unit::new(13, 13, 15);
 
     let mut solo = Solo::new(unit0, unit1, dice);
-    for _ in 0..5 {
+    for _ in 0..4 {
         let (s, i) = solo.main_loop();
         print!("{}", s);
         println!("{}", i);

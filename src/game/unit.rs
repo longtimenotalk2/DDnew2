@@ -24,7 +24,7 @@ impl Unit {
     }
 
     pub fn state(&self) -> String {
-        format!("{}, {}, {}, {}\n", self.str(), self.skl(), self.spd(), self.hurt)
+        format!("{}, {}, {} ({})", self.str(), self.skl(), self.spd(), self.hurt)
     }
 
     pub fn hurt_lv(&self) -> i32 {

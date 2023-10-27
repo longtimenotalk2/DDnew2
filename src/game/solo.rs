@@ -18,7 +18,7 @@ impl Solo {
     }
 
     pub fn state(&self) -> String {
-        self.units[0].state() + self.units[1].state().as_str()
+        self.units[0].state() + " VS " + self.units[1].state().as_str() + "\n"
     }
 
     pub fn main_loop_times(&mut self, times : usize) -> Vec<i32> {
@@ -38,15 +38,17 @@ impl Solo {
 
     pub fn main_loop(&mut self) -> (String, i32) {
         let mut s = String::new();
-        s += self.state().as_str();
         loop {
             self.turn += 1;
             s += self.turn().as_str();
             if self.turn > 10 {
+                s += self.state().as_str();
                 return (s, 2)
             } else if self.units[0].str() == 0 {
+                s += self.state().as_str();
                 return (s, 1);
             } else if self.units[1].str() == 0 {
+                s += self.state().as_str();
                 return (s, 0);
             } 
         }
@@ -54,7 +56,7 @@ impl Solo {
 
     pub fn turn(&mut self) -> String {
         let mut s = String::new();
-        writeln!(s, "Turn = {}", self.turn).unwrap();
+        writeln!(s, "--------------------------Turn {}", self.turn).unwrap();
         let first : usize = if self.units[0].spd() < self.units[1].spd() { 
             1 
         } else if self.units[0].spd() > self.units[1].spd() { 
@@ -63,10 +65,10 @@ impl Solo {
             (self.dice.d(2) - 1).try_into().unwrap()
         };
 
-        s += self.punch(first).as_str();
-        s += self.punch(1 - first).as_str();
-
         s += self.state().as_str();
+        s += self.punch(first).as_str();
+        s += self.state().as_str();
+        s += self.punch(1 - first).as_str();
         s
     }
     
@@ -74,7 +76,12 @@ impl Solo {
     pub fn punch(&mut self, act : usize) -> String {
         let mut s = String::new();
         let tar = 1 - act;
-        writeln!(s, "{act} => {tar}").unwrap();
+        if act == 0 {
+            write!(s, "==> ").unwrap();
+        } else {
+            write!(s, "<== ").unwrap();
+        }
+        
         let acc = 100 + self.units[act].skl() * 10;
         let evd = self.units[tar].spd() * 10;
         let hit = acc - evd;
@@ -96,7 +103,7 @@ impl Solo {
                 write!(s, "Block!").unwrap();
                 0.max(atk - def)
             };
-            write!(s, " : {}", dmg).unwrap();
+            write!(s, " 【{}】", dmg).unwrap();
             self.units[tar].take_dmg(dmg);
 
         } else {
