@@ -47,20 +47,20 @@ fn test3() {
     let alyssa = Unit::new("艾丽莎", 11, 15, 16);
     let elis = Unit::new("伊莉丝", 12, 18, 12);
 
-    yelin.take_bound();
-    yelin.take_bound();
-    yelin.take_bound();
-    yelin.take_stun(1);
-    yelin.take_ctrl(1);
+    // yelin.take_bound();
+    // yelin.take_bound();
+    // yelin.take_bound();
+    // yelin.take_stun(1);
+    // yelin.take_ctrl(1);
 
-    let enemy0 = Unit::new("! 头目", 16, 18, 20);
-    let enemy1 = Unit::new("! 杂鱼", 9, 10, 12);
+    let enemy0 = Unit::new("E 头目", 16, 18, 20);
+    let enemy1 = Unit::new("E 杂鱼", 9, 10, 12);
 
     let mut team = Team::new(vec!(elis, alyssa, yelin), vec!(enemy0, enemy1), dice);
 
-    print!("{}", team.state());
+    print!("{}", team.main_loop(4));
 
-    dbg!(team.find_target(1));
+    print!("结束");
 }
 
 fn test4() {

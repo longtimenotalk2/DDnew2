@@ -234,6 +234,8 @@ impl Unit {
 
     pub fn take_ctrl(&mut self, ctrl : u32) {
         self.ctrl = Some(ctrl);
+        self.action = false;
+        
     }
 
     pub fn take_master(&mut self, master : u32) {

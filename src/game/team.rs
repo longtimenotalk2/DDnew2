@@ -54,30 +54,53 @@ impl Team {
         }
     }
 
+    pub fn main_loop(&mut self, n : i32) -> String {
+        let mut s = String::new();
+        for _ in 0..n {
+            s += self.turn().as_str();
+        }
+        s
+    } 
+
     pub fn turn(&mut self) -> String {
         let mut s = String::new();
-        writeln!(s, "--------------------------Turn {}", self.turn).unwrap();
+        self.turn += 1;
+        writeln!(s, "=============第 {} 回合开始==============", {self.turn}).unwrap();
+        // 恢复
+        for pw in &mut self.board {
+            pw.unit.recover();
+        }
 
+        s += &self.state();
+        
+        // 行动阶段
         while let Some(pos) = self.get_next_actor() {
-            self.action(pos);
+            s += self.action(pos).as_str();
+            s += &self.state();
         }
         s
     }
 
     fn action(&mut self, p : i32) -> String {
         let mut s = String::new();
-
-        s += "跳过回合\n";
+        for pt in self.find_target(p) {
+            if let Some(skill) = self.make_choice(p, pt) {
+                return self.take_choice(p, skill);
+            }
+        }
+            
+        s += "无可执行行动，跳过回合\n";
         s
     }
 
     fn take_choice(&mut self, p : i32, skill : Skill) -> String {
         let mut s = String::new();
+        self.pos_pawn_mut(p).unwrap().unit.finish();
         let u = &self.pos_pawn(p).unwrap().unit;
         match skill {
             // 压制
             Skill::Ctrl(pt) => {
-                let ut = &self.pos_pawn(p).unwrap().unit;
+                let ut = &self.pos_pawn(pt).unwrap().unit;
                 writeln!(s, "{} 压制并开始捆绑 {} !", u.name, ut.name).unwrap();
                 let id_ctrl = ut.id;
                 let id_master = u.id;
@@ -92,7 +115,7 @@ impl Team {
             },
             // 挥拳
             Skill::Punch(pt) => {
-                let ut = &self.pos_pawn(p).unwrap().unit;
+                let ut = &self.pos_pawn(pt).unwrap().unit;
                 let hit_rate = 0.max(100.min(100 + u.skl_lv() * 25 - ut.spd_lv() * 25));
                 let mut cri_rate = 0.max(100.min(25 + u.skl_lv() * 25 - ut.spd_lv() * 25));
                 let atk = u.str();
@@ -104,24 +127,24 @@ impl Team {
                 } else {
                     "无法格挡"
                 };
-                writeln!(s, "{} 挥拳 {} ! 命中率{}%, {}, 暴击率{}%", u.name, ut.name, hit_rate, def_txt, cri_rate).unwrap();
+                writeln!(s, "{} 挥拳 {} !\n命中率{}%, {}, 暴击率{}%", u.name, ut.name, hit_rate, def_txt, cri_rate).unwrap();
                 let dice = self.dice.d(100);
                 let u = &mut self.pos_pawn_mut(p).unwrap().unit;
-                let ut = &self.pos_pawn(p).unwrap().unit;
+                let ut = &self.pos_pawn(pt).unwrap().unit;
                 let is_hit = dice <= hit_rate;
                 let is_cri = dice <= cri_rate;
                 let mut txt = (if is_hit {"命中"} else {"落空"}).to_string();
                 let dmg = if is_hit {
                     if can_def {
-                        s += ", 被格挡\n";
+                        txt += ", 被格挡\n";
                         1.max((atk - def) / 2)
                     }else{
-                        s += ", 直击";
+                        txt += ", 直击";
                         if is_cri {
-                            s += "暴击!";
+                            txt += ", 暴击!";
                             atk
                         }else{
-                            s += "未暴击";
+                            txt += ", 未暴击";
                             1.max(atk - def)
                         }
                     }
@@ -132,6 +155,7 @@ impl Team {
                 let stun = if is_cri {
                     let dmg_lv = get_lv(dmg);
                     0.max(dmg_lv + 1 -  ut.str_lv())
+                    
                 }else{
                     0
                 };
@@ -148,15 +172,15 @@ impl Team {
                 self.cancel_ctrl(p);
                 let ut = &mut self.pos_pawn_mut(pt).unwrap().unit;
                 ut.take_dmg(dmg);
-                ut.take_stun(stun);
                 if stun > 0 {
+                    ut.take_stun(stun);
                     self.cancel_ctrl(pt);
                 }
                 self.dash_to(p, pt);
             },
             // 踢腿
             Skill::Kick(pt) => {
-                let ut = &self.pos_pawn(p).unwrap().unit;
+                let ut = &self.pos_pawn(pt).unwrap().unit;
                 let hit_rate = 0.max(100.min(75 + u.skl_lv() * 25 - ut.spd_lv() * 25));
                 let mut cri_rate = 0.max(100.min(25 + u.skl_lv() * 25 - ut.spd_lv() * 25));
                 let atk = u.str() + 5;
@@ -168,24 +192,24 @@ impl Team {
                 } else {
                     "无法格挡"
                 };
-                writeln!(s, "{} 踢腿 {} ! 命中率{}%, {}, 暴击率{}%", u.name, ut.name, hit_rate, def_txt, cri_rate).unwrap();
+                writeln!(s, "{} 踢腿 {} \n命中率{}%, {}, 暴击率{}%", u.name, ut.name, hit_rate, def_txt, cri_rate).unwrap();
                 let dice = self.dice.d(100);
                 let u = &self.pos_pawn(p).unwrap().unit;
-                let ut = &self.pos_pawn(p).unwrap().unit;
+                let ut = &self.pos_pawn(pt).unwrap().unit;
                 let is_hit = dice <= hit_rate;
                 let is_cri = dice <= cri_rate;
-                let txt = (if is_hit {"命中"} else {"落空"}).to_string();
+                let mut txt = (if is_hit {"命中"} else {"落空"}).to_string();
                 let dmg = if is_hit {
                     if can_def {
-                        s += ", 被格挡\n";
+                        txt += ", 被格挡\n";
                         1.max((atk - def) / 2)
                     }else{
-                        s += ", 直击";
+                        txt += ", 直击";
                         if is_cri {
-                            s += "暴击!";
+                            txt += ", 暴击!";
                             atk
                         }else{
-                            s += "未暴击";
+                            txt += ", 未暴击";
                             1.max(atk - def)
                         }
                     }
@@ -212,8 +236,8 @@ impl Team {
                 self.cancel_ctrl(p);
                 let ut = &mut self.pos_pawn_mut(pt).unwrap().unit;
                 ut.take_dmg(dmg);
-                ut.take_stun(stun);
                 if stun > 0 {
+                    ut.take_stun(stun);
                     self.cancel_ctrl(pt);
                 }
                 self.dash_to(p, pt);
@@ -251,7 +275,7 @@ impl Team {
             },
             // 维持压制
             Skill::CtnCtrl => {
-                writeln!(s, "{} 维持压制，继续捆绑", u.name);
+                writeln!(s, "{} 维持压制，继续捆绑", u.name).unwrap();
             },
         }
         s

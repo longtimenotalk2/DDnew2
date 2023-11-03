@@ -41,13 +41,13 @@ impl Solo {
         loop {
             self.turn += 1;
             s += self.turn().as_str();
-            if self.turn > 10 {
+            if self.turn > 50 {
                 s += self.state().as_str();
                 return (s, 2)
-            } else if self.units[0].str() == 0 {
+            } else if self.units[0].bound() {
                 s += self.state().as_str();
                 return (s, 1);
-            } else if self.units[1].str() == 0 {
+            } else if self.units[1].bound() {
                 s += self.state().as_str();
                 return (s, 0);
             } 
@@ -57,6 +57,9 @@ impl Solo {
     pub fn turn(&mut self) -> String {
         let mut s = String::new();
         writeln!(s, "--------------------------Turn {}", self.turn).unwrap();
+        self.units[0].recover();
+        self.units[1].recover();
+        
         let first : usize = if self.units[0].spd() < self.units[1].spd() { 
             1 
         } else if self.units[0].spd() > self.units[1].spd() { 
@@ -65,14 +68,36 @@ impl Solo {
             (self.dice.d(2) - 1).try_into().unwrap()
         };
 
-        s += self.state().as_str();
-        s += self.punch(first).as_str();
-        s += self.state().as_str();
-        s += self.punch(1 - first).as_str();
+        for act in [first, 1 - first] {
+            s += self.state().as_str();
+            if self.units[act].action() {
+                s += self.action(act).as_str();
+                self.units[act].finish();
+            } else {
+                s += "Cant Move\n";
+            }
+        }
         s
     }
     
     // action
+    pub fn action(&mut self, act : usize) -> String {
+        let tar = 1 - act;
+        if self.units[tar].stun() > 0 || (self.units[act].str_lv() - self.units[tar].str_lv() >= 2 && self.units[act].skl_lv() >= self.units[tar].spd_lv()) {
+            self.units[tar].take_bound();
+            let mut s = String::new();
+            if act == 0 {
+                write!(s, "==> ").unwrap();
+            } else {
+                write!(s, "<== ").unwrap();
+            }
+            s += " Bound!\n";
+            s
+        }else{
+            self.punch(act)
+        }
+    }
+    
     pub fn punch(&mut self, act : usize) -> String {
         let mut s = String::new();
         let tar = 1 - act;
@@ -87,23 +112,36 @@ impl Solo {
         let hit = acc - evd;
         let atk = 5 + self.units[act].str();
         let def = self.units[tar].str();
-        let cri = 10 * self.units[act].skl();
-        let cvd = 10 * self.units[tar].skl();
+        let cri = 5 * self.units[act].skl();
+        let blk = 5 * self.units[tar].skl();
+        let cvd = 5 * 
+        self.units[tar].spd();
         let cht = cri - cvd;
-        let ubk = 50 + cri - cvd;
+        let ubk = 50 + cri - blk;
         let d = self.dice.d(100);
+        let mut is_crit = false;
         if d <= hit {
-            let dmg = if d <= cht {
-                write!(s, "Crit!").unwrap();
-                0.max(atk)
-            } else if d <= ubk {
-                write!(s, "Hit!").unwrap();
-                0.max(atk - def / 2)
-            } else {
+            let dmg = if d > ubk {
                 write!(s, "Block!").unwrap();
                 0.max(atk - def)
+            }else if d <= cht {
+                write!(s, "Crit!").unwrap();
+                is_crit = true;
+                0.max(atk)
+            } else {
+                write!(s, "Hit!").unwrap();
+                0.max(atk - def / 2)
             };
             write!(s, " 【{}】", dmg).unwrap();
+            
+            if is_crit {
+                let dmg_lv = dmg / 5;
+                let stun = 1 + dmg_lv - self.units[tar].str_lv();
+                if stun > 0 {
+                    writeln!(s, "Stun {}", stun).unwrap();
+                    self.units[tar].take_stun(stun);
+                }
+            }
             self.units[tar].take_dmg(dmg);
 
         } else {
