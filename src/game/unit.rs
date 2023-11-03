@@ -1,8 +1,8 @@
 use std::fmt::Write;
 
 pub struct Unit {
-    name : String,
-    id : u32,
+    pub name : String,
+    pub id : u32,
     str : i32,
     skl : i32,
     spd : i32,
@@ -120,15 +120,27 @@ impl Unit {
     }
 
     pub fn str_lv(&self) -> i32 {
-        self.str() / 5
+        if self.str() == 0 {
+            0
+        } else {
+            self.str() / 5 + 1
+        }
     }
 
     pub fn skl_lv(&self) -> i32 {
-        self.skl() / 5
+        if self.skl() == 0 {
+            0
+        } else {
+            self.skl() / 5 + 1
+        }
     }
 
     pub fn spd_lv(&self) -> i32 {
-        self.spd() / 5
+        if self.spd() == 0 {
+            0
+        } else {
+            self.spd() / 5 + 1
+        }
     }
 
     pub fn take_dmg(&mut self, dmg : i32) {
@@ -142,6 +154,10 @@ impl Unit {
 
     pub fn stun(&self) -> i32 {
         self.stun
+    }
+
+    pub fn mastered_id(&self) -> Option<u32> {
+        self.master
     }
 
     pub fn recover(&mut self) {
@@ -180,11 +196,60 @@ impl Unit {
         }
     }
 
+    pub fn take_bounds(&mut self, n : i32) {
+        for _ in 0..n {
+            self.take_bound();
+        }
+    }
+
+    pub fn take_untie(&mut self) -> &str {
+        if self.lock {
+            self.lock = false;
+            "锁"
+        } else if self.wrist && !self.arm {
+            self.wrist = false;
+            "腕"
+        } else if self.leg {
+            self.leg = false;
+            "腿"
+        } else if self.arm {
+            self.arm = false;
+            "臂"
+        } else {
+            ""
+        }
+    }
+
+    pub fn take_unties(&mut self, n : i32) -> String {
+        let mut s = String::new();
+        for _ in 0..n {
+            let a = self.take_untie();
+            if a != "" {
+                s += a;
+                s += " ";
+            }
+        }
+        s
+    }
+
     pub fn take_ctrl(&mut self, ctrl : u32) {
         self.ctrl = Some(ctrl);
     }
 
+    pub fn take_master(&mut self, master : u32) {
+        self.master = Some(master);
+    }
+
+    pub fn cancel_ctrl(&mut self) {
+        self.ctrl = None;
+        self.master = None;
+    }
+
     // 定性状态
+    pub fn is_stun(&self) -> bool {
+        self.stun > 0
+    }
+    
     pub fn defeated(&self) -> bool {
         self.lock
     }
@@ -213,7 +278,68 @@ impl Unit {
         }
     }
 
+    pub fn have_bound(&self) -> bool {
+        self.wrist || self.leg || self.arm || self.lock 
+    }
+
     pub fn can_target(&self) -> bool {
         !self.ctrled()
+    }
+
+    pub fn can_stand(&self) -> bool {
+        !self.leg && !self.is_stun()
+    }
+
+    pub fn can_ctrl(&self) -> bool {
+        !self.wrist && !self.leg && !self.arm && !self.lock && self.str_lv() > 0 && self.skl_lv() > 0
+    }
+
+    pub fn can_punch(&self) -> bool {
+        !self.wrist && !self.leg && !self.arm && !self.lock && self.str_lv() > 0 && self.skl_lv() > 0
+    }
+
+    pub fn can_kick(&self) -> bool {
+        !self.leg && !self.lock && self.str_lv() > 0 && self.skl_lv() > 0
+    }
+
+    pub fn can_def(&self) -> bool {
+        !self.is_stun() && !self.wrist
+    }
+
+    pub fn can_untie(&self) -> bool {
+        !self.is_stun() && !self.wrist && !self.leg && !self.arm && !self.lock
+    }
+
+    pub fn can_untie_self(&self) -> bool {
+        !self.is_stun() && !self.wrist
+    }
+
+    // 定量状态
+    pub fn struggle_lv(&self) -> i32 {
+        let mut rs = self.str_lv();
+        if self.wrist {
+            rs -= 1;
+        }
+        if self.leg {
+            rs -= 1;
+        }
+        0.max(rs)
+    }
+
+    pub fn evd_lv(&self) -> i32 {
+        let evd = if self.leg {
+            self.spd / 2
+        } else {
+            self.spd
+        };
+        get_lv(evd)
+    }
+}
+
+fn get_lv(i : i32) -> i32 {
+    if i <= 0 {
+        0
+    } else {
+        i / 5 + 1
     }
 }
