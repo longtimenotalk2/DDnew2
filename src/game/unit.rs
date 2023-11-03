@@ -165,7 +165,10 @@ impl Unit {
         if self.stun > 0 {
             self.stun -= 1;
         }
-        if self.stun == 0 {
+    }
+
+    pub fn refresh_action(&mut self) {
+        if !self.is_stun() && !self.ctrled() {
             self.action = true;
         }
     }
@@ -178,28 +181,34 @@ impl Unit {
         self.action = false;
     }
 
-    pub fn take_bound(&mut self) -> bool {
+    pub fn take_bound(&mut self) -> &str {
         if self.wrist == false {
             self.wrist = true;
-            true
+            "腕"
         } else if self.leg == false {
             self.leg = true;
-            true
+            "腿"
         } else if self.arm == false {
             self.arm = true;
-            true
+            "臂"
         } else if self.lock == false {
             self.lock = true;
-            true
+            "锁"
         } else {
-            false
+            ""
         }
     }
 
-    pub fn take_bounds(&mut self, n : i32) {
+    pub fn take_bounds(&mut self, n : i32) -> String {
+        let mut s = String::new();
         for _ in 0..n {
-            self.take_bound();
+            let a = self.take_bound();
+            if a != "" {
+                s += a;
+                s += " ";
+            }
         }
+        s
     }
 
     pub fn take_untie(&mut self) -> &str {
@@ -326,6 +335,14 @@ impl Unit {
             rs -= 1;
         }
         0.max(rs)
+    }
+
+    pub fn antibound_lv(&self) -> i32 {
+        if self.is_stun() {
+            get_lv(self.str()/2)
+        } else {
+            self.str_lv()
+        }
     }
 
     pub fn evd_lv(&self) -> i32 {

@@ -53,8 +53,8 @@ fn test3() {
     // yelin.take_stun(1);
     // yelin.take_ctrl(1);
 
-    let enemy0 = Unit::new("E 头目", 16, 18, 20);
-    let enemy1 = Unit::new("E 杂鱼", 9, 10, 12);
+    let enemy0 = Unit::new("头  目", 16, 18, 20);
+    let enemy1 = Unit::new("杂  鱼", 9, 10, 12);
 
     let mut team = Team::new(vec!(elis, alyssa, yelin), vec!(enemy0, enemy1), dice);
 

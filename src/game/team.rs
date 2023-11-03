@@ -71,12 +71,64 @@ impl Team {
             pw.unit.recover();
         }
 
+        // 尝试挣扎
+        for i in 0..self.board.len() {
+            let i : usize = i.try_into().unwrap();
+            let u = &self.board[i].unit;
+            let p = self.id_pos(u.id);
+            if let Some(it) = u.mastered_id() {
+                let pt = self.id_pos(it);
+                let ut = &self.pos_pawn(pt).unwrap().unit;
+                if !ut.is_stun() && !ut.defeated() && ut.struggle_lv() > 0 {
+                    if u.str_lv() <= ut.struggle_lv() {
+                        writeln!(s, "{} 挣脱了 {} 的压制", ut.name, u.name);
+                        self.cancel_ctrl(p);
+                    } else if u.str_lv() == ut.struggle_lv() + 1 {
+                        let dice = self.dice.d(100);
+                        let u = &self.board[i].unit;
+                        let ut = &self.pos_pawn(pt).unwrap().unit;
+                        write!(s, "掷骰 {dice}, ").unwrap();
+                        if dice <= 50 {
+                            writeln!(s, "{} 挣脱了 {} 的压制", ut.name, u.name).unwrap();
+                            self.cancel_ctrl(p);
+                        } else {
+                            writeln!(s, "{} 未能挣脱 {} 的压制", ut.name, u.name).unwrap();
+                        }
+                    }
+                }
+            }
+        }
+
+        // 获取行动
+        for pw in &mut self.board {
+            pw.unit.refresh_action();
+        }
+
         s += &self.state();
         
         // 行动阶段
         while let Some(pos) = self.get_next_actor() {
             s += self.action(pos).as_str();
             s += &self.state();
+        }
+
+        // 捆绑阶段
+        for i in 0..self.board.len() {
+            let i : usize = i.try_into().unwrap();
+            let u = &self.board[i].unit;
+            let p = self.id_pos(u.id);
+            if let Some(it) = u.mastered_id() {
+                let pt = self.id_pos(it);
+                let ut = &self.pos_pawn(pt).unwrap().unit;
+                let mut point = u.skl_lv();
+                if ut.antibound_lv() > 0 {
+                    point -= 0.max(ut.antibound_lv() + 2 - u.str_lv());
+                }
+                point = 1.max(point);
+                writeln!(s, "{} 对 {} 进行了捆绑", u.name, ut.name).unwrap();
+                let txt = self.pos_pawn_mut(pt).unwrap().unit.take_bounds(point);
+                writeln!(s, "依次捆绑了 {}部位", txt).unwrap();
+            }
         }
         s
     }
