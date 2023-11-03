@@ -2,7 +2,6 @@ pub mod wyrand;
 pub mod game;
 use crate::wyrand::Dice;
 use game::unit::Unit;
-// use game::solo::Solo;
 use game::team::Team;
 
 // fn test1() {
@@ -41,7 +40,7 @@ use game::team::Team;
 // }
 
 fn test3() {
-    let dice = Dice::new(114514);
+    let dice = Dice::new(114516);
     
     let mut yelin = Unit::new("叶  琳", 16, 14, 12);
     let alyssa = Unit::new("艾丽莎", 11, 15, 16);
@@ -58,9 +57,9 @@ fn test3() {
 
     let mut team = Team::new(vec!(elis, alyssa, yelin), vec!(enemy0, enemy1), dice);
 
-    print!("{}", team.main_loop(4));
+    // print!("{}", team.main_loop(20).1);
 
-    print!("结束");
+    team.win_rate(20, 200);
 }
 
 fn test4() {
