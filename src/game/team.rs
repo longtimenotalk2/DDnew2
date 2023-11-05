@@ -24,6 +24,7 @@ pub struct Team {
   board_init : Vec<Pawn>,
   dice: Dice,
   turn : i32,
+  next_team : u8,
 }
 
 impl Team {
@@ -55,13 +56,14 @@ impl Team {
     board_init,
     dice,
     turn : 0,
+    next_team : 0,
   }
   }
 
   pub fn win_rate(&mut self, n : i32, iter : i32) {
   let mut win = 0;
   let mut lose = 0;
-  for i in 0..iter {
+  for _ in 0..iter {
     self.reset();
     if let Some(df) = self.main_loop(n).0 {
     if df == 0 {
@@ -77,9 +79,16 @@ impl Team {
   fn reset(&mut self) {
   self.board = self.board_init.clone();
   self.turn = 0;
+  self.next_team = 0;
   }
 
   pub fn main_loop(&mut self, n : i32) -> (Option<u8>, String) {
+  // 随机先手方
+  if self.dice.d(2) == 2 {
+    self.next_team = 1;
+  }else{
+    self.next_team = 0;
+  }
   let mut s = String::new();
   for _ in 0..n {
     s += self.turn().as_str();
@@ -150,6 +159,8 @@ impl Team {
   
   // 行动阶段
   while let Some(pos) = self.get_next_actor() {
+    let team = self.pos_pawn(pos).unwrap().team;
+    self.next_team = 1 - team;
     s += self.action(pos).as_str();
     s += &self.state();
   }
@@ -217,12 +228,70 @@ impl Team {
     },
     // 挥拳
     Skill::Punch(pt) => {
+      s += &self.attack(p, pt, "挥拳", 0, 100, 20, 1);
+    },
+    // 踢腿
+    Skill::Kick(pt) => {
+      s += &self.attack(p, pt, "踢腿", 5, 75, 20, 2);
+    },
+    // 解绑
+    Skill::Untie(pt) => {
+    let point = u.skl_lv();
+    self.cancel_ctrl(p);
+    let txt = self.pos_pawn_mut(pt).unwrap().unit.take_unties(point);
+    let u = &self.pos_pawn(p).unwrap().unit;
     let ut = &self.pos_pawn(pt).unwrap().unit;
-    let hit_rate = 0.max(100.min(100 + u.skl_lv() * 25 - ut.spd_lv() * 25));
-    let mut cri_rate = 0.max(100.min(25 + u.skl_lv() * 25 - ut.spd_lv() * 25));
-    let atk = u.str();
+    writeln!(s, "\n{} 解绑 {}, 依次解绑了 {}部位\n", u.name, ut.name, txt).unwrap();
+    self.dash_to(p, pt);
+    },
+    // 解绑自身
+    Skill::UntieSelf => {
+    let txt = self.pos_pawn_mut(p).unwrap().unit.take_unties(1);
+    let u = &self.pos_pawn_mut(p).unwrap().unit;
+    writeln!(s, "\n{} 解绑 自身, 依次解绑了 {}部位\n", u.name, txt).unwrap();
+    },
+    // 挣脱
+    Skill::Escape => {
+    let rate = u.str_lv() * 10;
+    let dice = self.dice.d(100);
+    let u = &self.pos_pawn_mut(p).unwrap().unit;
+    let is_escape = dice <= rate;
+    writeln!(s, "\n{} 尝试挣脱, 成功率 {}%", u.name, rate).unwrap();
+    write!(s, "掷骰 {dice}, ").unwrap();
+    if is_escape {
+      let bd = self.pos_pawn_mut(p).unwrap().unit.take_untie();
+      writeln!(s, "挣脱成功, 解除 {} 束缚\n", bd).unwrap();
+    }else{
+      s += "挣脱失败\n\n";
+    }
+    },
+    // 维持压制
+    Skill::CtnCtrl => {
+    writeln!(s, "\n>>>>  {} 维持压制，继续捆绑\n", u.name).unwrap();
+    },
+  }
+  s
+  }
+
+  fn attack(&mut self, 
+    p : i32, 
+    pt : i32,
+    name : &str,
+    base_atk : i32,
+    base_hit : i32,
+    base_cri : i32,
+    pierce_lv : i32,
+  ) -> String {
+    let mut s = String::new();
+    let u = &self.pos_pawn(p).unwrap().unit;
+    let ut = &self.pos_pawn(pt).unwrap().unit;
+    let hit_rate = 0.max(100.min(base_hit + u.skl_lv() * 25 - ut.spd_lv() * 25));
+    let mut cri_rate = 0.max(100.min(base_cri + u.skl_lv() * 10 - ut.spd_lv() * 10));
+    let atk = u.str() + base_atk;
     let def = ut.str() / 2;
-    let can_def = ut.can_def() && ut.skl_lv() > u.skl_lv();
+    let def_cri = 0;
+    let can_pierce = !ut.can_def() || u.skl_lv() - ut.skl_lv() >= pierce_lv;
+    let can_def = !can_pierce;
     let def_txt = if can_def {
       cri_rate = 0;
       "会被格挡"
@@ -231,7 +300,7 @@ impl Team {
     };
     let mut vtxt = String::new();
     let mut dtxt = String::new();
-    write!(vtxt, ">>>>  {} 挥拳 {} : ", u.name, ut.name);
+    write!(vtxt, ">>>>  {} {name} {} : ", u.name, ut.name).unwrap();
     writeln!(dtxt, "命中率{}%, {}, 暴击率{}%", hit_rate, def_txt, cri_rate).unwrap();
     let dice = self.dice.d(100);
     let u = &mut self.pos_pawn_mut(p).unwrap().unit;
@@ -242,12 +311,13 @@ impl Team {
     let dmg = if is_hit {
       if can_def {
       txt += ", 被格挡";
+      vtxt += "(挡)";
       1.max((atk - def) / 2)
       }else{
       txt += ", 直击";
       if is_cri {
         txt += ", 暴击!";
-        atk
+        1.max(atk - def_cri)
       }else{
         txt += ", 未暴击";
         1.max(atk - def)
@@ -293,123 +363,7 @@ impl Team {
       self.cancel_ctrl(pt);
     }
     self.dash_to(p, pt);
-    },
-    // 踢腿
-    Skill::Kick(pt) => {
-    let ut = &self.pos_pawn(pt).unwrap().unit;
-    let hit_rate = 0.max(100.min(75 + u.skl_lv() * 25 - ut.spd_lv() * 25));
-    let mut cri_rate = 0.max(100.min(25 + u.skl_lv() * 25 - ut.spd_lv() * 25));
-    let atk = u.str() + 5;
-    let def = ut.str() / 2;
-    let can_def = ut.can_def() && ut.skl_lv() >= u.skl_lv();
-    let def_txt = if can_def {
-      cri_rate = 0;
-      "会被格挡"
-    } else {
-      "无法格挡"
-    };
-    let mut vtxt = String::new();
-    let mut dtxt = String::new();
-    write!(vtxt, ">>>>  {} 踢腿 {} : ", u.name, ut.name).unwrap();
-    writeln!(dtxt, "命中率{}%, {}, 暴击率{}%", hit_rate, def_txt, cri_rate).unwrap();
-    let dice = self.dice.d(100);
-    let u = &self.pos_pawn(p).unwrap().unit;
-    let ut = &self.pos_pawn(pt).unwrap().unit;
-    let is_hit = dice <= hit_rate;
-    let is_cri = dice <= cri_rate;
-    let mut txt = (if is_hit {"命中"} else {"落空"}).to_string();
-    let dmg = if is_hit {
-      if can_def {
-      txt += ", 被格挡";
-      1.max((atk - def) / 2)
-      }else{
-      txt += ", 直击";
-      if is_cri {
-        txt += ", 暴击!";
-        atk
-      }else{
-        txt += ", 未暴击";
-        1.max(atk - def)
-      }
-      }
-    } else {
-      0
-    };
-
-    let stun = if is_cri {
-      let dmg_lv = get_lv(dmg);
-      0.max(dmg_lv + 1 -  ut.str_lv())
-    }else{
-      0
-    };
-    
-    writeln!(dtxt, "掷骰 {dice}, {txt}").unwrap();
-    if is_hit {
-      write!(dtxt, "造成 {} 点伤害", dmg).unwrap();
-      write!(vtxt, " {}", dmg).unwrap();
-      if is_cri {
-        vtxt += "!";
-      }
-      if stun > 0 {
-      write!(dtxt, ", 并击晕 {} 回合", stun).unwrap();
-      write!(vtxt, " 晕 {} !", stun).unwrap();
-      }
-    } else {
-      vtxt += "miss"
-    }
-    s += "\n";
-    s += &vtxt;
-    s += "\n\n";
-    s += &dtxt;
-    s += "\n";
-      
-    // 结算
-    self.cancel_ctrl(p);
-    let ut = &mut self.pos_pawn_mut(pt).unwrap().unit;
-    ut.take_dmg(dmg);
-    if stun > 0 {
-      ut.take_stun(stun);
-      self.cancel_ctrl(pt);
-    }
-    self.dash_to(p, pt);
-    },
-    // 解绑
-    Skill::Untie(pt) => {
-    let point = u.skl_lv();
-    self.cancel_ctrl(p);
-    let txt = self.pos_pawn_mut(pt).unwrap().unit.take_unties(point);
-    let u = &self.pos_pawn(p).unwrap().unit;
-    let ut = &self.pos_pawn(pt).unwrap().unit;
-    writeln!(s, "{} 解绑 {}, 依次解绑了 {}部位", u.name, ut.name, txt).unwrap();
-    self.dash_to(p, pt);
-    },
-    // 解绑自身
-    Skill::UntieSelf => {
-    let txt = self.pos_pawn_mut(p).unwrap().unit.take_unties(1);
-    let u = &self.pos_pawn_mut(p).unwrap().unit;
-    writeln!(s, "{} 解绑 自身, 依次解绑了 {}部位", u.name, txt).unwrap();
-    },
-    // 挣脱
-    Skill::Escape => {
-    let rate = u.str_lv() * 10;
-    let dice = self.dice.d(100);
-    let u = &self.pos_pawn_mut(p).unwrap().unit;
-    let is_escape = dice <= rate;
-    writeln!(s, "{} 尝试挣脱, 成功率 {}%", u.name, rate).unwrap();
-    write!(s, "掷骰 {dice}, ").unwrap();
-    if is_escape {
-      let bd = self.pos_pawn_mut(p).unwrap().unit.take_untie();
-      writeln!(s, "挣脱成功, 解除 {} 束缚", bd).unwrap();
-    }else{
-      s += "挣脱失败\n";
-    }
-    },
-    // 维持压制
-    Skill::CtnCtrl => {
-    writeln!(s, "{} 维持压制，继续捆绑", u.name).unwrap();
-    },
-  }
-  s
+    s
   }
 
   fn cancel_ctrl(&mut self, p : i32) {
@@ -454,7 +408,7 @@ impl Team {
     }
     // 攻击
     if !ut.defeated() && !ut.is_stun() {
-    if u.can_punch() &&  ((ut.can_def() && u.skl_lv() == ut.skl_lv() ) || u.skl_lv() < ut.evd_lv()) {
+    if u.can_punch() &&  ((ut.can_def() && u.skl_lv() == ut.skl_lv() + 1) || u.skl_lv() < ut.evd_lv()) {
       return Some(Skill::Punch(pt))
     } else if u.can_kick() {
       return Some(Skill::Kick(pt))
@@ -527,17 +481,35 @@ impl Team {
 
 
   fn get_next_actor(&self) -> Option<i32> {
-  let mut spd_f = None;
-  let mut p_f = None;
-  for (i, p) in self.board.iter().enumerate() {
-    let i = i as i32;
-    let u = &p.unit;
-    if u.action() && u.spd() > spd_f.unwrap_or(-1) {
-    spd_f = Some(u.spd());
-    p_f = Some(i);
+    let mut spd_f = None;
+    let mut p_list = vec!();
+    // 先找所有最高速的
+    for (i, p) in self.board.iter().enumerate() {
+      let i = i as i32;
+      let u = &p.unit;
+      if u.action() {
+        if u.spd() > spd_f.unwrap_or(-1) {
+          spd_f = Some(u.spd());
+          p_list.clear();
+          p_list.push(i);
+        }  else {
+          if u.spd() == spd_f.unwrap_or(-1) {
+            p_list.push(i);
+          }
+        }
+      }
     }
-  }
-  p_f
+    // 优先选符合该队伍的
+    for p in &p_list {
+      if self.pos_pawn(*p).unwrap().team == self.next_team {
+        return Some(*p)
+      }
+    }
+    // 如果没有符合,则选择第一个
+    if p_list.len() > 0 {
+      return Some(p_list[0])
+    }
+    None
   }
 
   fn is_end(&self) -> Option<u8> {
