@@ -47,7 +47,7 @@ fn test5() {
 fn test6() {
     let dice = Dice::new(114514);
 
-    let noel = Unit::new("诺艾尔", 10, 10, 10);
+    let noel = Unit::new("诺艾尔", 20, 10, 10);
     let yelin = Unit::new("叶  琳", 16, 14, 12);
     let alyssa = Unit::new("艾丽莎", 11, 15, 16);
     let elis = Unit::new("伊莉丝", 12, 18, 12);
@@ -57,7 +57,7 @@ fn test6() {
     let enemy2 = Unit::new("三  姐", 12, 12, 12);
     let enemy3 = Unit::new("幺  妹", 8, 12, 14);
 
-    let mut team = Team::new(vec!(noel, elis, alyssa, yelin), vec!(enemy0, enemy1), dice);
+    let mut team = Team::new(vec!(noel, elis, alyssa, yelin), vec!(enemy0, enemy1, enemy2), dice);
 
     print!("{}", team.main_loop(20).1);
 

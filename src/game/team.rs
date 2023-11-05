@@ -228,11 +228,11 @@ impl Team {
     },
     // 挥拳
     Skill::Punch(pt) => {
-      s += &self.attack(p, pt, "挥拳", 0, 100, 20, 1);
+      s += &self.attack(p, pt, Attack::Punch);
     },
     // 踢腿
     Skill::Kick(pt) => {
-      s += &self.attack(p, pt, "踢腿", 5, 75, 20, 2);
+      s += &self.attack(p, pt, Attack::Kick);
     },
     // 解绑
     Skill::Untie(pt) => {
@@ -276,24 +276,21 @@ impl Team {
   fn attack(&mut self, 
     p : i32, 
     pt : i32,
-    name : &str,
-    base_atk : i32,
-    base_hit : i32,
-    base_cri : i32,
-    pierce_lv : i32,
+    tp : Attack,
   ) -> String {
     let mut s = String::new();
+    let name = match &tp {
+      Attack::Punch => "挥拳",
+      Attack::Kick => "踢腿",
+    };
     let u = &self.pos_pawn(p).unwrap().unit;
     let ut = &self.pos_pawn(pt).unwrap().unit;
-    let hit_rate = 0.max(100.min(base_hit + u.skl_lv() * 25 - ut.spd_lv() * 25));
-    let mut cri_rate = 0.max(100.min(base_cri + u.skl_lv() * 10 - ut.spd_lv() * 10));
-    let atk = u.str() + base_atk;
-    let def = ut.str() / 2;
-    let def_cri = 0;
-    let can_pierce = !ut.can_def() || u.skl_lv() - ut.skl_lv() >= pierce_lv;
+    let ana = attack_analyse(u, ut,tp);
+    let hit_rate = ana.hit;
+    let cri_rate = ana.cri;
+    let can_pierce = ana.pierce;
     let can_def = !can_pierce;
     let def_txt = if can_def {
-      cri_rate = 0;
       "会被格挡"
     } else {
       "无法格挡"
@@ -312,15 +309,15 @@ impl Team {
       if can_def {
       txt += ", 被格挡";
       vtxt += "(挡)";
-      1.max((atk - def) / 2)
+      ana.dmg_normal
       }else{
       txt += ", 直击";
       if is_cri {
         txt += ", 暴击!";
-        1.max(atk - def_cri)
+        ana.dmg_cri
       }else{
         txt += ", 未暴击";
-        1.max(atk - def)
+        ana.dmg_normal
       }
       }
     } else {
@@ -578,4 +575,53 @@ fn get_lv(i : i32) -> i32 {
   } else {
   i / 5 + 1
   }
+}
+
+enum Attack {
+  Punch,
+  Kick,
+}
+
+struct AttackData {
+  pub hit : i32,
+  pub pierce : bool,
+  pub cri : i32,
+  pub dmg_normal : i32,
+  pub dmg_cri : i32,
+}
+
+fn attack_analyse(act : &Unit, tar : &Unit, tp : Attack) -> AttackData {
+  let base_hit = match &tp {
+    Attack::Punch => 100,
+    Attack::Kick => 75,
+  };
+  let base_cri = match &tp {
+    Attack::Punch => 20,
+    Attack::Kick => 20,
+  };
+  let base_atk = match &tp {
+    Attack::Punch => 0,
+    Attack::Kick => 5,
+  };
+  let atk = base_atk + act.str();
+  let def = tar.str() / 2;
+  let mut pierce = match &tp {
+    Attack::Punch => act.skl_lv() - tar.skl_lv() >= 1,
+    Attack::Kick => act.skl_lv() - tar.skl_lv() >= 2,
+  };
+  if !tar.can_def() {
+    pierce = true;
+  }
+  let hit = 0.max(100.min(base_hit + (act.skl_lv() - tar.spd_lv()) * 25));
+  let mut cri = 0.max(100.min(base_cri + (act.skl_lv() - tar.spd_lv()) * 10));
+  if !pierce {
+    cri = 0;
+  }
+  let mut dmg_normal = 1.max(atk - def);
+  if !pierce {
+    dmg_normal = 1.max(dmg_normal / 2);
+  }
+  let dmg_cri = atk;
+  
+  AttackData {hit, pierce, cri, dmg_normal, dmg_cri}
 }
