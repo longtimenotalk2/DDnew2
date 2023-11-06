@@ -405,11 +405,26 @@ impl Team {
     }
     // 攻击
     if !ut.defeated() && !ut.is_stun() {
-    if u.can_punch() &&  ((ut.can_def() && u.skl_lv() == ut.skl_lv() + 1) || u.skl_lv() < ut.evd_lv()) {
-      return Some(Skill::Punch(pt))
-    } else if u.can_kick() {
-      return Some(Skill::Kick(pt))
-    } 
+    // if u.can_punch() &&  ((ut.can_def() && u.skl_lv() == ut.skl_lv() + 1) || u.skl_lv() < ut.evd_lv()) {
+    //   return Some(Skill::Punch(pt))
+    // } else if u.can_kick() {
+    //   return Some(Skill::Kick(pt))
+    // } 
+      if u.can_punch() {
+        if u.can_kick() {
+          let exp1 = exp_dmg(&attack_analyse(u, ut, Attack::Punch));
+          let exp2 = exp_dmg(&attack_analyse(u, ut, Attack::Kick));
+          if exp1 >= exp2 {
+            return Some(Skill::Punch(pt))
+          }else {
+            return Some(Skill::Kick(pt))
+          } 
+        }else {
+          return Some(Skill::Punch(pt))
+        }
+      } else if u.can_kick() {
+        return Some(Skill::Kick(pt))
+      }
     }
   } else {
     // 对友
@@ -624,4 +639,10 @@ fn attack_analyse(act : &Unit, tar : &Unit, tp : Attack) -> AttackData {
   let dmg_cri = atk;
   
   AttackData {hit, pierce, cri, dmg_normal, dmg_cri}
+}
+
+fn exp_dmg(ana : &AttackData) -> i32 {
+  let cri_part = ana.cri * ana.dmg_cri;
+  let normal_part = ana.dmg_normal * (ana.hit - ana.cri);
+  cri_part + normal_part
 }
