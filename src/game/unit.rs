@@ -55,11 +55,6 @@ impl Unit {
 
   pub fn state(&self) -> String {
   let mut sf = String::new();
-  if self.action {
-    sf += "|";
-  }else{
-    sf += " ";
-  }
   sf += self.name.as_str();
   write!(sf, "{}", self.id).unwrap();
 
@@ -177,6 +172,10 @@ impl Unit {
 
   pub fn action(&self) -> bool {
   self.action
+  }
+
+  pub fn can_select(&self) -> bool {
+    self.action()
   }
 
   pub fn finish(&mut self) {

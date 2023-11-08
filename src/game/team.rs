@@ -2,6 +2,10 @@ use super::unit::Unit;
 use crate::wyrand::Dice;
 use std::fmt::Write;
 
+mod choose_unit;
+mod choose_skill;
+mod single_turn;
+
 #[derive(Clone)]
 struct Pawn {
   pub unit : Unit,
@@ -24,40 +28,57 @@ pub struct Team {
   board_init : Vec<Pawn>,
   dice: Dice,
   turn : i32,
-  next_team : u8,
+  pub next_team : u8,
+  spd_now : Option<i32>,
+  wait_ids : Vec<u32>,
+  team_0_human : bool,
+  team_1_human : bool,
 }
 
 impl Team {
   pub fn state(&self) -> String {
-  let mut s = String::new();
-  writeln!(s, "第{:^3}回合, 力 技 速(伤,  状态   束缚情况)", self.turn).unwrap();
-  for p in &self.board {
-    writeln!(s, "{}", p.unit.state()).unwrap();
-  }
-  s
+    let mut s = String::new();
+    writeln!(s, "第{:^3}回合, 力 技 速(伤,  状态   束缚情况)", self.turn).unwrap();
+    for p in &self.board {
+      let sh = if p.unit.action() {
+        if self.wait_ids.contains(&p.id) {
+          "w"
+        } else {
+          "|"
+        }
+      } else {
+        " "
+      };
+      writeln!(s, "{sh}{}", p.unit.state()).unwrap();
+    }
+    s
   }
   
   pub fn new(a : Vec<Unit>, b : Vec<Unit>, dice : Dice) -> Team {
-  let mut board = vec!();
-  let mut id : u32 = 0;
-  for mut u in a {
-    u.change_id(id);
-    board.push(Pawn {unit : u, team : 0, id});
-    id += 1;
-  }
-  for mut u in b {
-    u.change_id(id);
-    board.push(Pawn {unit : u, team : 1, id});
-    id += 1;
-  }
-  let board_init = board.clone();
-  Self {
-    board,
-    board_init,
-    dice,
-    turn : 0,
-    next_team : 0,
-  }
+    let mut board = vec!();
+    let mut id : u32 = 0;
+    for mut u in a {
+      u.change_id(id);
+      board.push(Pawn {unit : u, team : 0, id});
+      id += 1;
+    }
+    for mut u in b {
+      u.change_id(id);
+      board.push(Pawn {unit : u, team : 1, id});
+      id += 1;
+    }
+    let board_init = board.clone();
+    Self {
+      board,
+      board_init,
+      dice,
+      turn : 0,
+      next_team : 0,
+      spd_now : None,
+      wait_ids : vec!(),
+      team_0_human : false,
+      team_1_human : false,
+    }
   }
 
   pub fn win_rate(&mut self, n : i32, iter : i32) {

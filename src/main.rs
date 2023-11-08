@@ -53,15 +53,27 @@ fn test6() {
     let elis = Unit::new("伊莉丝", 12, 18, 12);
 
     let enemy0 = Unit::new("大  姐", 18, 18, 16);
-    let enemy1 = Unit::new("二  姐", 17, 12, 11);
+    let enemy1 = Unit::new("二  姐", 17, 12, 10);
     let enemy2 = Unit::new("三  姐", 12, 12, 12);
     let enemy3 = Unit::new("幺  妹", 8, 12, 14);
 
-    let mut team = Team::new(vec!(noel, elis, alyssa, yelin), vec!(enemy0, enemy1, enemy2), dice);
+    let mut team = Team::new(vec!(noel, elis, alyssa, yelin), vec!(enemy0, enemy1, enemy2, enemy3), dice);
 
-    print!("{}", team.main_loop(20).1);
+    // print!("{}", team.main_loop(20).1);
 
     // team.win_rate(20, 200);
+    team.test1();
+    let a = team.get_choose_unit(None);
+    let a = team.get_choose_unit(Some(&[2]));
+    let a = team.get_choose_unit(Some(&[4]));
+    let a = team.get_choose_unit(Some(&[7]));
+    let a = team.get_choose_unit(Some(&[1, 3]));
+    let a = team.get_choose_unit(Some(&[6]));
+    let a = team.get_choose_unit(Some(&[0]));
+    //let a = team.test2(1);
+    print!("{}", team.state());
+    dbg!(a);
+    dbg!(team.next_team);
 }
 
 fn test7() {
@@ -89,7 +101,7 @@ fn test7() {
 
 fn main() {
     println!("Hello, world!");
-    test7(); 
+    test6(); 
 
 
     
