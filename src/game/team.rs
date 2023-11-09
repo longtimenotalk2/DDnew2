@@ -4,7 +4,9 @@ use std::fmt::Write;
 
 mod choose_unit;
 mod choose_skill;
-mod single_turn;
+mod sub_turn;
+mod full_turn;
+mod io;
 
 #[derive(Clone)]
 struct Pawn {
@@ -41,11 +43,18 @@ impl Team {
     writeln!(s, "第{:^3}回合, 力 技 速(伤,  状态   束缚情况)", self.turn).unwrap();
     for p in &self.board {
       let sh = if p.unit.action() {
-        if self.wait_ids.contains(&p.id) {
-          "w"
+        if p.unit.can_select() {
+          if self.wait_ids.contains(&p.id) {
+            "w"
+          } else if p.unit.spd() >= self.spd_now.unwrap_or(-1) {
+            "|"
+          } else {
+            "·"
+          }
         } else {
-          "|"
+          "x"
         }
+          
       } else {
         " "
       };
@@ -56,7 +65,7 @@ impl Team {
   
   pub fn new(a : Vec<Unit>, b : Vec<Unit>, dice : Dice) -> Team {
     let mut board = vec!();
-    let mut id : u32 = 0;
+    let mut id : u32 = 1;
     for mut u in a {
       u.change_id(id);
       board.push(Pawn {unit : u, team : 0, id});
@@ -466,26 +475,27 @@ impl Team {
   }
 
   pub fn find_target(&self, p : i32) -> Vec<i32> {
-  let mut list = vec!();
-  let team = self.pos_pawn(p).unwrap().team;
-  let mut stop = [false, false];
-  for i in 1..self.board.len() {
-    for s in 0..2 {
-    let i = i as i32;
-    if stop[s] == false {
-      let pt = p + [-1, 1][s] * i;
-      if let Some(pw) = self.pos_pawn(pt) {
-      if pw.unit.can_target() {
-        list.push(pt);
-      }
-      if pw.team != team && pw.unit.block() {
-        stop[s] = true;
-      }
+    let mut list = vec!();
+    let team = self.pos_pawn(p).unwrap().team;
+    let mut stop = [false, false];
+    for i in 1..self.board.len() {
+      for s in 0..2 {
+        let i = i as i32;
+        if stop[s] == false {
+          let pt = p + [-1, 1][s] * i;
+          if let Some(pw) = self.pos_pawn(pt) {
+            if pw.unit.can_target() {
+              list.push(pt);
+              
+            }
+            if pw.team != team && pw.unit.block() {
+              stop[s] = true;
+            }
+          }
+        }
       }
     }
-    }
-  }
-  list
+    list
   }
 
   fn dash_to(&mut self, pos : i32, tar : i32) {

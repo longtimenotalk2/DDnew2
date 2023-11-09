@@ -6,17 +6,7 @@ use super::*;
 
 impl Team {
   // 返回接下来的行动方，行动角色列表，和是否允许等待
-  pub fn get_choose_unit(&mut self, wait : Option<&[u32]>) -> Option<(u8, Vec<u32>, bool)> {
-    // 如果等待，则加长等待名单。否则清空等待名单
-    if let Some(wait) = wait {
-      for id in wait {
-        if !self.wait_ids.contains(&id) {
-          self.wait_ids.push(*id);
-        }
-      }
-    } else {
-      self.wait_ids.clear();
-    }
+  pub fn get_choose_unit(&mut self) -> Option<(u8, Vec<u32>, bool)> {
     // 主要
     let next = self.decide_next(self.spd_now, &self.wait_ids, self.next_team);
     if let Some((spd, team, ids)) = next {
@@ -119,20 +109,4 @@ impl Team {
     }
     None
   }
-}
-
-// 测试 
-impl Team {
-  pub fn test1(&mut self) {
-    for pw in &mut self.board {
-      pw.unit.refresh_action();
-    }
-  }
-
-  pub fn test2(&mut self, id : u32) -> Option<(u8, Vec<u32>, bool)> {
-    
-      self.pos_pawn_mut(self.id_pos(id)).unwrap().unit.finish();
-    self.get_choose_unit(None)
-  }
-
 }

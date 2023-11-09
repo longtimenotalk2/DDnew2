@@ -322,6 +322,21 @@ impl Unit {
   !self.is_stun() && !self.wrist && !self.leg && !self.arm && !self.lock
   }
 
+  pub fn can_ctrl_w(&self, ut : &Unit) -> bool {
+    let u = &self;
+    if !u.can_ctrl() {
+      false
+    } else if ut.is_stun(){
+      true
+    } else if ut.restrain() {
+      true
+    } else if ut.struggle_lv() == 0 || u.str_lv() - ut.struggle_lv() >= 2 {
+      ut.can_stand() == false || u.skl_lv() >= ut.spd_lv()
+    } else {
+      false
+    }
+  }
+
   pub fn can_untie_self(&self) -> bool {
   !self.is_stun() && !self.wrist
   }

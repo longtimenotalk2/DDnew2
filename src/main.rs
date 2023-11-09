@@ -62,18 +62,10 @@ fn test6() {
     // print!("{}", team.main_loop(20).1);
 
     // team.win_rate(20, 200);
-    team.test1();
-    let a = team.get_choose_unit(None);
-    let a = team.get_choose_unit(Some(&[2]));
-    let a = team.get_choose_unit(Some(&[4]));
-    let a = team.get_choose_unit(Some(&[7]));
-    let a = team.get_choose_unit(Some(&[1, 3]));
-    let a = team.get_choose_unit(Some(&[6]));
-    let a = team.get_choose_unit(Some(&[0]));
-    //let a = team.test2(1);
-    print!("{}", team.state());
-    dbg!(a);
-    dbg!(team.next_team);
+
+    team.full_turn(true);
+    println!("End");
+  
 }
 
 fn test7() {
