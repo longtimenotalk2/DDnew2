@@ -7,6 +7,7 @@ mod choose_skill;
 mod sub_turn;
 mod full_turn;
 mod io;
+mod ai;
 
 #[derive(Clone)]
 struct Pawn {
@@ -33,7 +34,6 @@ pub struct Team {
   pub next_team : u8,
   spd_now : Option<i32>,
   wait_ids : Vec<u32>,
-  team_0_human : bool,
   team_1_human : bool,
 }
 
@@ -85,7 +85,6 @@ impl Team {
       next_team : 0,
       spd_now : None,
       wait_ids : vec!(),
-      team_0_human : false,
       team_1_human : false,
     }
   }
