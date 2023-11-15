@@ -8,6 +8,9 @@ use std::io;
 
 impl Team {
   pub fn io_unit(&self, ids : &[u32], can_wait : bool) -> Option<u32> {
+    if ids.len() == 1 && !can_wait {
+      return Some(ids[0])
+    }
     println!("请选择希望行动的角色：") ;
     for (_, id) in ids.iter().enumerate() {
       let u = &self.pos_pawn(self.id_pos(*id)).unwrap().unit;

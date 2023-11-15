@@ -165,7 +165,7 @@ impl Unit {
   }
 
   pub fn refresh_action(&mut self) {
-  if !self.is_stun() && !self.ctrled() && !self.defeated(){
+  if !self.is_stun() {
     self.action = true;
   }
   }
@@ -175,7 +175,7 @@ impl Unit {
   }
 
   pub fn can_select(&self) -> bool {
-    self.action()
+    self.action() && !self.ctrled() && !self.defeated()
   }
 
   pub fn finish(&mut self) {

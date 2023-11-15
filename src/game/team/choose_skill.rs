@@ -4,6 +4,7 @@
 
 use super::*;
 
+#[derive(PartialEq, Eq)]
 pub enum Skill {
   Ctrl(i32),
   Punch(i32),

@@ -9,7 +9,7 @@ use game::team::Team;
 fn test3() {
     let dice = Dice::new(114516);
     
-    let mut yelin = Unit::new("叶  琳", 16, 14, 12);
+    let yelin = Unit::new("叶  琳", 16, 14, 12);
     let alyssa = Unit::new("艾丽莎", 11, 15, 16);
     let elis = Unit::new("伊莉丝", 12, 18, 12);
 
@@ -38,10 +38,12 @@ fn test5() {
     let mut female = Unit::new("女斗士", 16, 12, 18);
     female.take_stun(2);
     let male = Unit::new("男盗贼", 14, 12, 13);
-    let mut team = Team::new(vec!(female), vec!(male), Dice::new(114519));
+    let mut team = Team::new(vec!(male), vec!(female), Dice::new(114519));
     // println!("{}", team.main_loop(50).1);
 
-    team.win_rate(20, 200);
+    // team.win_rate(20, 200);
+
+    team.loop_turn(20, true, true);
 }
 
 fn test6() {
@@ -63,7 +65,7 @@ fn test6() {
 
     // team.win_rate(20, 200);
 
-    team.full_turn(true);
+    team.full_turn(true, true);
     println!("End");
   
 }
@@ -93,7 +95,7 @@ fn test7() {
 
 fn main() {
     println!("Hello, world!");
-    test6(); 
+    test5(); 
 
 
     

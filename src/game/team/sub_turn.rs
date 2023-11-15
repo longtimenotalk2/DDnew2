@@ -6,12 +6,21 @@ use super::choose_skill::Skill;
 use super::*;
 
 impl Team {
-  pub fn sub_turn(&mut self, o : bool) -> bool {
-    if let Some((_team, ids, can_wait)) = self.get_choose_unit() {
+  pub fn sub_turn(&mut self, o : bool, ai_1 : bool) -> bool {
+    if let Some((team, ids, can_wait)) = self.get_choose_unit() {
       if o {print!("{}", self.state_ids(&ids))}
-      if let Some(id) = self.io_unit(&ids, can_wait) {
+      let idq = if ai_1 && team == 1 {
+        Some(self.ai_unit(&ids))
+      } else {
+        self.io_unit(&ids, can_wait)
+      };
+      if let Some(id) = idq {
         let skls = self.skill_choose(id);
-        let skl = self.io_skill(skls);
+        let skl = if ai_1 && team == 1 {
+          self.ai_skill(id, skls)
+        } else {
+          self.io_skill(skls)
+        };
         let s = self.skill_exe(id, skl);
         if o {print!("{}", s)};
       } else {
