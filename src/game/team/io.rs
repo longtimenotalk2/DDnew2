@@ -43,15 +43,20 @@ impl Team {
   }
 
   pub fn io_skill(&self, id : u32, mut skls : Vec<Skill>) -> Skill {
+    let ua = &self.pos_pawn(self.id_pos(id)).unwrap().unit;
     for (i, skl) in skls.iter().enumerate() {
       match skl {
         Skill::Punch(p) => {
           let u = &self.pos_pawn(*p).unwrap().unit;
-          println!("{} : 挥拳 -> {}{}", i, u.name, u.id);
+          let ana = attack_analyse(ua, u, Attack::Punch);
+          let pir = if ana.pierce {"√"} else {"×"};
+          println!("{} : 挥拳 -> {}{} (命{}% 穿{pir} 爆{} 伤{})", i, u.name, u.id, ana.hit, ana.cri, ana.dmg_normal);
         },
         Skill::Kick(p) => {
           let u = &self.pos_pawn(*p).unwrap().unit;
-          println!("{} : 踢腿 -> {}{}", i, u.name, u.id);
+          let ana = attack_analyse(ua, u, Attack::Kick);
+          let pir = if ana.pierce {"√"} else {"×"};
+          println!("{} : 踢腿 -> {}{} (命{}% 穿{pir} 爆{} 伤{})", i, u.name, u.id, ana.hit, ana.cri, ana.dmg_normal);
         },
         Skill::Ctrl(p) => {
           let u = &self.pos_pawn(*p).unwrap().unit;

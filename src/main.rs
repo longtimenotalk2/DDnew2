@@ -32,19 +32,14 @@ fn test6() {
 
     let mut team = Team::new(vec!(noel, elis, alyssa, yelin), vec!(enemy0, enemy1, enemy2, enemy3), dice);
 
-    // print!("{}", team.main_loop(20).1);
-
-    // team.win_rate(20, 200);
-
-    team.loop_turn(100, true, true);
-    println!("End");
+    team.play();
   
 }
 
 
 fn main() {
     println!("Hello, world!");
-    test5(); 
+    test6(); 
 
 
     
