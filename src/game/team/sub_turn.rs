@@ -19,7 +19,7 @@ impl Team {
         let skl = if ai_1 && team == 1 {
           self.ai_skill(id, skls)
         } else {
-          self.io_skill(skls)
+          self.io_skill(id, skls)
         };
         let s = self.skill_exe(id, skl);
         if o {print!("{}", s)};
@@ -174,7 +174,6 @@ impl Team {
     write!(vtxt, ">>>>  {} {name} {} : ", u.name, ut.name).unwrap();
     writeln!(dtxt, "命中率{}%, {}, 暴击率{}%", hit_rate, def_txt, cri_rate).unwrap();
     let dice = self.dice.d(100);
-    let u = &mut self.pos_pawn_mut(p).unwrap().unit;
     let ut = &self.pos_pawn(pt).unwrap().unit;
     let is_hit = dice <= hit_rate;
     let is_cri = dice <= cri_rate;

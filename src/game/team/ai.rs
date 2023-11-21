@@ -23,9 +23,14 @@ impl Team {
         list_self.push(skl)
       }
     }
-    // 继续压制
+    // 继续压制，如果还没完全捆住
     if list_self.contains(&Skill::CtnCtrl) {
-      return Skill::CtnCtrl
+      let u = &self.pos_pawn(self.id_pos(id)).unwrap().unit;
+      let idt = u.mastered_id().unwrap();
+      let ut = &self.pos_pawn(self.id_pos(idt)).unwrap().unit;
+      if !ut.defeated() {
+        return Skill::CtnCtrl
+      }
     }
     // 对目标操作，选择最近的
     let mut pn : Option<i32> = None;

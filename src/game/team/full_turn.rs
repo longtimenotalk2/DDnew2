@@ -34,7 +34,6 @@ impl Team {
     for i in 0..self.board.len() {
       let i : usize = i.try_into().unwrap();
       let u = &self.board[i].unit;
-      let p = self.id_pos(u.id);
       if let Some(it) = u.mastered_id() {
       let pt = self.id_pos(it);
       let ut = &self.pos_pawn(pt).unwrap().unit;

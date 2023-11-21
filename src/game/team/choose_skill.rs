@@ -25,7 +25,11 @@ impl Team {
     let u = &self.pos_pawn(p).unwrap().unit;
     // 维持控制
     if u.mastered() {
-      skls.push(Skill::CtnCtrl);
+      let idt = u.mastered_id().unwrap();
+      let ut = &self.pos_pawn(self.id_pos(idt)).unwrap().unit;
+      if !ut.defeated() {
+        skls.push(Skill::CtnCtrl);
+      }
     }
     // 挣脱束缚
     if u.have_bound(){
@@ -46,17 +50,19 @@ impl Team {
           skls.push(Skill::Untie(pt));
         }
       }else {
-        // 对敌
-        // 控制
-        if u.can_ctrl_w(ut) {
-          skls.push(Skill::Ctrl(pt));
-        }
-        // 攻击
-        if u.can_punch() {
-          skls.push(Skill::Punch(pt));
-        }
-        if u.can_kick() {
-          skls.push(Skill::Kick(pt));
+        // 对敌，对方只要没被击败
+        if !ut.defeated() {
+          // 控制
+          if u.can_ctrl_w(ut) {
+            skls.push(Skill::Ctrl(pt));
+          }
+          // 攻击
+          if u.can_punch() {
+            skls.push(Skill::Punch(pt));
+          }
+          if u.can_kick() {
+            skls.push(Skill::Kick(pt));
+          }
         }
       }
     }

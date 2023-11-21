@@ -25,6 +25,9 @@ impl Team {
     loop {
       let mut ops = String::new();
       io::stdin().read_line(&mut ops).expect("failed to read line");
+      if &ops == "\n" {
+        return Some(self.ai_unit(ids))
+      }
       if let Ok(op) = ops.trim().parse::<u32>() {
         if ids.contains(&op) {
           return Some(op);
@@ -39,7 +42,7 @@ impl Team {
     }
   }
 
-  pub fn io_skill(&self, mut skls : Vec<Skill>) -> Skill {
+  pub fn io_skill(&self, id : u32, mut skls : Vec<Skill>) -> Skill {
     for (i, skl) in skls.iter().enumerate() {
       match skl {
         Skill::Punch(p) => {
@@ -76,6 +79,9 @@ impl Team {
     loop {
       let mut ops = String::new();
       io::stdin().read_line(&mut ops).expect("failed to read line");
+      if &ops == "\n" {
+        return self.ai_skill(id, skls);
+      }
       if let Ok(op) = ops.trim().parse::<usize>() {
         if op < skls.len() {
           return skls.remove(op);
