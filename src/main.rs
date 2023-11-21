@@ -12,11 +12,9 @@ fn test5() {
     female2.take_stun(99);
     let male = Unit::new("男盗贼", 14, 12, 13);
     let mut team = Team::new(vec!(male), vec!(female, female2), Dice::new(114519));
-    // println!("{}", team.main_loop(50).1);
+  
 
-    // team.win_rate(20, 200);
-
-    team.loop_turn(20, true, true);
+    team.play();
 }
 
 fn test6() {

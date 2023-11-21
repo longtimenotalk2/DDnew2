@@ -55,13 +55,14 @@ impl Team {
           // 控制
           if u.can_ctrl_w(ut) {
             skls.push(Skill::Ctrl(pt));
-          }
-          // 攻击
-          if u.can_punch() {
-            skls.push(Skill::Punch(pt));
-          }
-          if u.can_kick() {
-            skls.push(Skill::Kick(pt));
+          } else {
+          // 攻击（不能控制的时候）
+            if u.can_punch() {
+              skls.push(Skill::Punch(pt));
+            }
+            if u.can_kick() {
+              skls.push(Skill::Kick(pt));
+            }
           }
         }
       }

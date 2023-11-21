@@ -50,6 +50,18 @@ impl Team {
       if skls.contains(&Skill::Ctrl(pt)) {
         return Skill::Ctrl(pt);
       } else if skls.contains(&Skill::Punch(pt)) {
+        if skls.contains(&Skill::Kick(pt)) {
+          // 比较两种攻击方式
+          let u = &self.pos_pawn(p).unwrap().unit;
+          let ut = &self.pos_pawn(pt).unwrap().unit;
+          let punch = exp_dmg(&attack_analyse(u, ut, Attack::Punch));
+          let kick = exp_dmg(&attack_analyse(u, ut, Attack::Kick));
+          if punch >= kick {
+            return Skill::Punch(pt);
+          } else {
+            return Skill::Kick(pt);
+          }
+        }
         return Skill::Punch(pt);
       } else if skls.contains(&Skill::Kick(pt)) {
         return Skill::Kick(pt);

@@ -6,6 +6,15 @@
 use super::*;
 
 impl Team {
+  pub fn play(&mut self) {
+    let r = self.loop_turn(100, true, true);
+    match r {
+      Some(0) => println!("你输了,游戏结束"),
+      Some(1) => println!("你赢了,游戏结束"),
+      _ => println!("超时,游戏结束"),
+    }
+  }
+  
   pub fn loop_turn(&mut self, n: i32, o : bool, ai_1 : bool) -> Option<u8> {
     for _ in 0..n {
       self.full_turn(o, ai_1);
