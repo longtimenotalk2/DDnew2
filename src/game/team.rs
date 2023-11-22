@@ -206,15 +206,16 @@ struct AttackData {
   pub dmg_cri : i32,
 }
 
-fn attack_analyse(act : &Unit, tar : &Unit, tp : Attack) -> AttackData {
+fn attack_analyse(act : &Unit, tar : &Unit, tp : Attack, back : bool) -> AttackData {
+  let back_fix = if back {1} else {0};
   let base_hit = match &tp {
-    Attack::Punch => 100,
+    Attack::Punch => 100 ,
     Attack::Kick => 75,
-  };
+  } + 25 * back_fix;
   let base_cri = match &tp {
     Attack::Punch => 20,
     Attack::Kick => 20,
-  };
+  } + 20 * back_fix;
   let base_atk = match &tp {
     Attack::Punch => 0,
     Attack::Kick => 5,
@@ -222,8 +223,8 @@ fn attack_analyse(act : &Unit, tar : &Unit, tp : Attack) -> AttackData {
   let atk = base_atk + act.str();
   let def = tar.str() / 2;
   let mut pierce = match &tp {
-    Attack::Punch => act.skl_lv() - tar.skl_lv() >= 1,
-    Attack::Kick => act.skl_lv() - tar.skl_lv() >= 2,
+    Attack::Punch => act.skl_lv() - tar.skl_lv() + back_fix >= 1,
+    Attack::Kick => act.skl_lv() - tar.skl_lv() + back_fix >= 2,
   };
   if !tar.can_def() {
     pierce = true;

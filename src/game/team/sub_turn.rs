@@ -159,7 +159,8 @@ impl Team {
     };
     let u = &self.pos_pawn(p).unwrap().unit;
     let ut = &self.pos_pawn(pt).unwrap().unit;
-    let ana = attack_analyse(u, ut,tp);
+    let back = ut.mastered();
+    let ana = attack_analyse(u, ut,tp, back);
     let hit_rate = ana.hit;
     let cri_rate = ana.cri;
     let can_pierce = ana.pierce;

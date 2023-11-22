@@ -48,13 +48,15 @@ impl Team {
       match skl {
         Skill::Punch(p) => {
           let u = &self.pos_pawn(*p).unwrap().unit;
-          let ana = attack_analyse(ua, u, Attack::Punch);
+          let back = u.mastered();
+          let ana = attack_analyse(ua, u, Attack::Punch, back);
           let pir = if ana.pierce {"√"} else {"×"};
           println!("{} : 挥拳 -> {}{} (命{}% 穿{pir} 爆{} 伤{})", i, u.name, u.id, ana.hit, ana.cri, ana.dmg_normal);
         },
         Skill::Kick(p) => {
           let u = &self.pos_pawn(*p).unwrap().unit;
-          let ana = attack_analyse(ua, u, Attack::Kick);
+          let back = u.mastered();
+          let ana = attack_analyse(ua, u, Attack::Kick, back);
           let pir = if ana.pierce {"√"} else {"×"};
           println!("{} : 踢腿 -> {}{} (命{}% 穿{pir} 爆{} 伤{})", i, u.name, u.id, ana.hit, ana.cri, ana.dmg_normal);
         },

@@ -40,6 +40,7 @@ impl Team {
   fn end(&mut self, o : bool) {
     let mut s = String::new();
     // 捆绑阶段
+    s += "\n";
     for i in 0..self.board.len() {
       let i : usize = i.try_into().unwrap();
       let u = &self.board[i].unit;
@@ -51,6 +52,7 @@ impl Team {
         point -= 0.max(ut.antibound_lv() + 2 - u.str_lv());
       }
       point = 1.max(point);
+      point = 2.min(point);
       writeln!(s, "{} 对 {} 进行了捆绑", u.name, ut.name).unwrap();
       let txt = self.pos_pawn_mut(pt).unwrap().unit.take_bounds(point);
       writeln!(s, "依次捆绑了 {}部位", txt).unwrap();
@@ -67,6 +69,7 @@ impl Team {
     }
 
     // 尝试挣扎
+    s += "\n";
     for i in 0..self.board.len() {
       let i : usize = i.try_into().unwrap();
       let u = &self.board[i].unit;

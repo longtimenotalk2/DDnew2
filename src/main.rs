@@ -5,6 +5,7 @@ use game::unit::Unit;
 use game::team::Team;
 
 
+
 fn test5() {
     let mut female = Unit::new("女斗士", 16, 12, 18);
     female.take_stun(2);
@@ -13,7 +14,6 @@ fn test5() {
     let male = Unit::new("男盗贼", 14, 12, 13);
     let mut team = Team::new(vec!(male), vec!(female, female2), Dice::new(114519));
   
-
     team.play();
 }
 
@@ -36,10 +36,24 @@ fn test6() {
   
 }
 
+fn test7() {
+    let noel = Unit::new("诺艾尔", 10, 10, 10);
+    let mut yelin = Unit::new("叶  琳", 16, 14, 12);
+    // yelin.take_stun(2);
+    let e1 = Unit::new("杂鱼 A", 9,9,12);
+    let e2 = Unit::new("杂鱼 B", 9,12,9);
+    let e3 = Unit::new("杂鱼 C", 12,9,9);
+    let dice = Dice::new(114514);
+
+    let mut team = Team::new(vec!(noel, yelin), vec!(e1, e2, e3), dice);
+
+    team.play()
+}
+
 
 fn main() {
     println!("Hello, world!");
-    test6(); 
+    test7(); 
 
 
     
