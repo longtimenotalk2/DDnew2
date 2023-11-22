@@ -34,7 +34,7 @@ impl Team {
 
   pub fn state_ids(&self, ids : &[u32]) -> String {
     let mut s = String::new();
-    writeln!(s, "第{:^3}回合, 力 技 速(伤,  状态   束缚情况)", self.turn).unwrap();
+    writeln!(s, "第{:^3}回合, 力 技 速(伤,  状态   束缚)", self.turn).unwrap();
     for p in &self.board {
       let sh = if p.unit.action() {
         if p.unit.can_select() {
@@ -229,6 +229,7 @@ impl Team {
     self.cancel_ctrl(p);
     let ut = &mut self.pos_pawn_mut(pt).unwrap().unit;
     ut.take_dmg(dmg);
+    ut.take_broke();
     if stun > 0 {
       ut.take_stun(stun);
       self.cancel_ctrl(pt);

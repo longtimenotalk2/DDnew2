@@ -9,6 +9,7 @@ pub struct Unit {
   spd : i32,
   hurt : i32,
   stun : i32,
+  broke : i32,
   ctrl : Option<u32>,
   master : Option<u32>,
   action : bool,
@@ -21,22 +22,23 @@ pub struct Unit {
 
 impl Unit {
   pub fn new(name : &str, str : i32, skl : i32, spd : i32) -> Self {
-  Self {
-    name : name.to_string(),
-    id : 0,
-    str,
-    skl,
-    spd,
-    hurt : 0,
-    stun : 0,
-    ctrl : None,
-    master : None,
-    action : false,
-    arm : false,
-    wrist : false,
-    leg : false,
-    lock : false,
-  }
+    Self {
+      name : name.to_string(),
+      id : 0,
+      str,
+      skl,
+      spd,
+      hurt : 0,
+      stun : 0,
+      broke : 0,
+      ctrl : None,
+      master : None,
+      action : false,
+      arm : false,
+      wrist : false,
+      leg : false,
+      lock : false,
+    }
   }
 
   pub fn change_id(&mut self, id : u32) {
@@ -61,6 +63,8 @@ impl Unit {
   let mut s = String::new();
   if self.stun > 0 {
     write!(s, "晕{} ", self.stun).unwrap();
+  } else if self.broke > 0 {
+    write!(s, "破{} ", self.broke).unwrap();
   } else {
     s += "    ";
   }
@@ -71,25 +75,20 @@ impl Unit {
   } else {
     s += "     ";
   }
-  if self.arm {
-    s += "臂";
-  }else{
-    s+= "  ";
-  }
-  if self.wrist {
-    s += "腕";
-  }else{
-    s+= "  ";
-  }
-  if self.leg {
-    s += "腿";
-  }else{
-    s+= "  ";
-  }
   if self.lock {
-    s += "锁";
-  }else{
-    s+= "  ";
+    s += "锁  ";
+  } else {
+    if self.arm {
+      s += "臂";
+      if self.leg {s += "腿";} else {s += "  ";}
+    } else if self.wrist {
+      s += "腕";
+      if self.leg {s += "腿";} else {s += "  ";} 
+    } else if self.leg {
+      s += "腿  ";
+    } else {
+      s += "    ";
+    }
   }
   let hurt = if self.hurt > 0 {
     format!("{:2}", self.hurt)
@@ -152,16 +151,25 @@ impl Unit {
   self.stun
   }
 
+  pub fn take_broke(&mut self) {
+    self.broke += 1;
+  }
+
+  pub fn broke(&self) -> i32 {
+    self.broke
+  }
+
   pub fn mastered_id(&self) -> Option<u32> {
   self.master
   }
 
   pub fn recover(&mut self) {
-  let heal = root(self.hurt);
-  self.hurt = 0.max(self.hurt - heal);
-  if self.stun > 0 {
-    self.stun -= 1;
-  }
+    let heal = root(self.hurt);
+    self.hurt = 0.max(self.hurt - heal);
+    if self.stun > 0 {
+      self.stun -= 1;
+    }
+    self.broke = 0;
   }
 
   pub fn refresh_action(&mut self) {

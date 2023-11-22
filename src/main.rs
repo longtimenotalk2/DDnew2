@@ -53,7 +53,7 @@ fn test7() {
 
 fn main() {
     println!("Hello, world!");
-    test7(); 
+    test6(); 
 
 
     

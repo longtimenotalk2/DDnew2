@@ -28,7 +28,7 @@ pub struct Team {
 impl Team {
   pub fn state(&self) -> String {
     let mut s = String::new();
-    writeln!(s, "第{:^3}回合, 力 技 速(伤,  状态   束缚情况)", self.turn).unwrap();
+    writeln!(s, "第{:^3}回合, 力 技 速(伤,  状态   束缚)", self.turn).unwrap();
     for p in &self.board {
       let sh = if p.unit.action() {
         if p.unit.can_select() {
@@ -207,7 +207,8 @@ struct AttackData {
 }
 
 fn attack_analyse(act : &Unit, tar : &Unit, tp : Attack, back : bool) -> AttackData {
-  let back_fix = if back {1} else {0};
+  let mut back_fix = if back {1} else {0};
+  back_fix += tar.broke();
   let base_hit = match &tp {
     Attack::Punch => 100 ,
     Attack::Kick => 75,
