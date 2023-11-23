@@ -173,9 +173,9 @@ impl Unit {
   }
 
   pub fn refresh_action(&mut self) {
-  if !self.is_stun() {
-    self.action = true;
-  }
+    if !self.is_stun() {
+      self.action = true;
+    }
   }
 
   pub fn action(&self) -> bool {
@@ -187,7 +187,7 @@ impl Unit {
   }
 
   pub fn finish(&mut self) {
-  self.action = false;
+    self.action = false;
   }
 
   pub fn take_bound(&mut self) -> &str {
@@ -221,97 +221,95 @@ impl Unit {
   }
 
   pub fn take_untie(&mut self) -> &str {
-  if self.lock {
-    self.lock = false;
-    "[锁]"
-  } else if self.wrist && !self.arm {
-    self.wrist = false;
-    "[腕]"
-  } else if self.leg {
-    self.leg = false;
-    "[腿]"
-  } else if self.arm {
-    self.arm = false;
-    "[臂]"
-  } else {
-    ""
-  }
+    if self.lock {
+      self.lock = false;
+      "[锁]"
+    } else if self.wrist && !self.arm {
+      self.wrist = false;
+      "[腕]"
+    } else if self.leg {
+      self.leg = false;
+      "[腿]"
+    } else if self.arm {
+      self.arm = false;
+      "[臂]"
+    } else {
+      ""
+    }
   }
 
   pub fn take_unties(&mut self, n : i32) -> String {
-  let mut s = String::new();
-  for _ in 0..n {
-    let a = self.take_untie();
-    if a != "" {
-    s += a;
-    s += " ";
+    let mut s = String::new();
+    for _ in 0..n {
+      let a = self.take_untie();
+      if a != "" {
+      s += a;
+      s += " ";
+      }
     }
-  }
-  s
+    s
   }
 
   pub fn take_ctrl(&mut self, ctrl : u32) {
-  self.ctrl = Some(ctrl);
-  self.action = false;
-  
+    self.ctrl = Some(ctrl);
   }
 
   pub fn take_master(&mut self, master : u32) {
-  self.master = Some(master);
+    self.master = Some(master);
   }
 
   pub fn cancel_ctrl(&mut self) {
-  self.ctrl = None;
-  self.master = None;
+    self.ctrl = None;
+    self.master = None;
   }
 
   // 定性状态
   pub fn is_stun(&self) -> bool {
-  self.stun > 0
+    self.stun > 0
   }
   
   pub fn defeated(&self) -> bool {
-  self.lock
+    self.lock
   }
 
   pub fn ctrled(&self) -> bool {
-  self.ctrl.is_some()
+    self.ctrl.is_some()
   }
 
   pub fn mastered(&self) -> bool {
-  self.master.is_some()
+    self.master.is_some()
   }
 
   pub fn restrain(&self) -> bool {
-  self.wrist && self.leg
+    self.wrist && self.leg
   }
 
   pub fn block(&self) -> bool {
-  if self.stun > 0 {
-    false
-  } else if self.ctrled() {
-    false
-  } else if self.restrain() {
-    false
-  } else {
-    true
-  }
+    if self.stun > 0 {
+      false
+    } else if self.ctrled() {
+      false
+    } else if self.restrain() {
+      false
+    } else {
+      true
+    }
   }
 
   pub fn have_bound(&self) -> bool {
-  self.wrist || self.leg || self.arm || self.lock 
+    self.wrist || self.leg || self.arm || self.lock 
   }
 
   pub fn can_target(&self) -> bool {
-  !self.ctrled()
+    !self.ctrled()
   }
 
   pub fn can_stand(&self) -> bool {
-  !self.leg && !self.is_stun()
+    !self.leg && !self.is_stun()
   }
 
   pub fn can_ctrl(&self) -> bool {
-  !self.wrist && !self.leg && !self.arm && !self.lock && self.str_lv() > 0 && self.skl_lv() > 0
+    !self.wrist && !self.leg && !self.arm && !self.lock && self.str_lv() > 0 && self.skl_lv() > 0
   }
 
   pub fn can_punch(&self) -> bool {

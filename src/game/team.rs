@@ -22,7 +22,8 @@ pub struct Team {
   turn : i32,
   pub next_team : u8,
   spd_now : Option<i32>,
-  wait_ids : Vec<u32>
+  wait_ids : Vec<u32>,
+  next_ids : Vec<u32>,
 }
 
 impl Team {
@@ -71,7 +72,8 @@ impl Team {
       turn : 0,
       next_team : 0,
       spd_now : None,
-      wait_ids : vec!()
+      wait_ids : vec!(),
+      next_ids : vec!(),
     }
   }
 

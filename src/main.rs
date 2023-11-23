@@ -20,7 +20,7 @@ fn test5() {
 fn test6() {
     let dice = Dice::new(114514);
 
-    let noel = Unit::new("诺艾尔", 20, 10, 10);
+    let noel = Unit::new("诺艾尔", 10, 10, 10);
     let yelin = Unit::new("叶  琳", 16, 14, 12);
     let alyssa = Unit::new("艾丽莎", 11, 15, 16);
     let elis = Unit::new("伊莉丝", 12, 18, 12);
@@ -40,12 +40,13 @@ fn test7() {
     let noel = Unit::new("诺艾尔", 10, 10, 10);
     let mut yelin = Unit::new("叶  琳", 16, 14, 12);
     // yelin.take_stun(2);
-    let e1 = Unit::new("杂鱼 A", 9,9,12);
-    let e2 = Unit::new("杂鱼 B", 9,12,9);
-    let e3 = Unit::new("杂鱼 C", 12,9,9);
+    let e1 = Unit::new("杂鱼A ", 9,9,12);
+    let e2 = Unit::new("杂鱼B ", 9,12,9);
+    let e3 = Unit::new("杂鱼C ", 12,9,9);
+    let e4 = Unit::new("杂鱼D ", 12,9,9);
     let dice = Dice::new(114514);
 
-    let mut team = Team::new(vec!(noel, yelin), vec!(e1, e2, e3), dice);
+    let mut team = Team::new(vec!( yelin), vec!(e1, e2, e3), dice);
 
     team.play()
 }

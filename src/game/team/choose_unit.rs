@@ -9,10 +9,44 @@ impl Team {
   pub fn get_choose_unit(&mut self) -> Option<(u8, Vec<u32>, bool)> {
     // 主要
     let next = self.decide_next(self.spd_now, &self.wait_ids, self.next_team);
-    if let Some((spd, team, ids)) = next {
+    if let Some((mut spd, team, mut ids)) = next {
+      // 如果此时选择等待，再次行动的依然是我方，则自动选择等待
+      let mut wait_ids = self.wait_ids.clone();
+      loop {
+        for id in &ids {
+          if !wait_ids.contains(id) {
+            wait_ids.push(*id);
+          }
+        }
+        if let Some((spd2, team2, ids2)) = self.decide_next(Some(spd), &wait_ids, 1 - team) {
+          if team2 == team {
+            spd = spd2;
+            ids = ids2;
+          }else{
+            break;
+          }
+        }else {
+          break;
+        }
+      }
+
+      // 更新team的当前速度
       self.spd_now = Some(spd);
       self.next_team = 1 - team;
       let can_wait = self.can_wait(&ids, &self.wait_ids, team);
+      // 在返回前，计算一下下一波要动的角色
+      let mut wait_ids = self.wait_ids.clone();
+      for id in &ids {
+        if !wait_ids.contains(id) {
+          wait_ids.push(*id);
+        }
+      }
+
+      let next2 = self.decide_next(Some(spd), &wait_ids, 1 - team);
+      self.next_ids.clear();
+      if let Some((_, _, ids)) = next2 {
+        self.next_ids = ids;
+      }
       Some((team, ids, can_wait))
     } else {
       None

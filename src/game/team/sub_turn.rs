@@ -38,11 +38,9 @@ impl Team {
     for p in &self.board {
       let sh = if p.unit.action() {
         if p.unit.can_select() {
-          if self.wait_ids.contains(&p.id) {
-            "w"
-          } else if ids.contains(&p.id){
+          if ids.contains(&p.id){
             ">"
-          }else if p.unit.spd() >= self.spd_now.unwrap_or(-1) {
+          }else if self.next_ids.contains(&p.id) {
             "|"
           } else {
             "·"
