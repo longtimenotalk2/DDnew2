@@ -208,8 +208,8 @@ struct AttackData {
   pub dmg_cri : i32,
 }
 
-fn attack_analyse(act : &Unit, tar : &Unit, tp : Attack, back : bool) -> AttackData {
-  let mut back_fix = if back {1} else {0};
+fn attack_analyse(act : &Unit, tar : &Unit, tp : Attack) -> AttackData {
+  let mut back_fix = if tar.mastered() {1} else {0};
   back_fix += tar.broke();
   let base_hit = match &tp {
     Attack::Punch => 100 ,

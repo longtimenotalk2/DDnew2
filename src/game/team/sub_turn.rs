@@ -76,6 +76,8 @@ impl Team {
     let p = self.id_pos(id);
     let mut s = String::new();
   self.pos_pawn_mut(p).unwrap().unit.finish();
+    let u = &mut self.pos_pawn_mut(p).unwrap().unit;
+    u.clear_broke();
     let u = &self.pos_pawn(p).unwrap().unit;
     match skill {
       // 略过
@@ -157,8 +159,7 @@ impl Team {
     };
     let u = &self.pos_pawn(p).unwrap().unit;
     let ut = &self.pos_pawn(pt).unwrap().unit;
-    let back = ut.mastered();
-    let ana = attack_analyse(u, ut,tp, back);
+    let ana = attack_analyse(u, ut,tp);
     let hit_rate = ana.hit;
     let cri_rate = ana.cri;
     let can_pierce = ana.pierce;
@@ -228,7 +229,7 @@ impl Team {
     let ut = &mut self.pos_pawn_mut(pt).unwrap().unit;
     ut.take_dmg(dmg);
     ut.take_broke();
-    if stun > 0 {
+    if stun > 0 || ut.str() == 0 {
       ut.take_stun(stun);
       self.cancel_ctrl(pt);
     }

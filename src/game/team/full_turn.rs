@@ -47,15 +47,20 @@ impl Team {
       if let Some(it) = u.mastered_id() {
       let pt = self.id_pos(it);
       let ut = &self.pos_pawn(pt).unwrap().unit;
-      let mut point = u.skl_lv();
-      if ut.antibound_lv() > 0 {
-        point -= 0.max(ut.antibound_lv() + 2 - u.str_lv());
-      }
-      point = 1.max(point);
-      point = 2.min(point);
-      writeln!(s, "{} 对 {} 进行了捆绑", u.name, ut.name).unwrap();
-      let txt = self.pos_pawn_mut(pt).unwrap().unit.take_bounds(point);
-      writeln!(s, "依次捆绑了 {}部位", txt).unwrap();
+      let point = if u.skl() == 0 {
+        0
+      } else if u.skl() >= 10 && (ut.stun() > 0 || ut.antibound_lv() + 2 - u.str_lv() <= 0) {
+        2
+      } else {
+        1
+      };
+      if point == 0 {
+        s += "技术为0，无法捆绑\n";
+      } else {
+        writeln!(s, "{} 对 {} 进行了捆绑", u.name, ut.name).unwrap();
+        let txt = self.pos_pawn_mut(pt).unwrap().unit.take_bounds(point);
+        writeln!(s, "依次捆绑了 {}部位", txt).unwrap();
+        }
       }
     }
     if o {print!("{}", s);}

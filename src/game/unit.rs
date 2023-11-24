@@ -155,6 +155,10 @@ impl Unit {
     self.broke += 1;
   }
 
+  pub fn clear_broke(&mut self) {
+    self.broke = 0;
+  }
+
   pub fn broke(&self) -> i32 {
     self.broke
   }
@@ -169,7 +173,6 @@ impl Unit {
     if self.stun > 0 {
       self.stun -= 1;
     }
-    self.broke = 0;
   }
 
   pub fn refresh_action(&mut self) {
@@ -321,11 +324,11 @@ impl Unit {
   }
 
   pub fn can_def(&self) -> bool {
-  !self.is_stun() && !self.wrist
+    !self.is_stun() && !self.wrist && self.str() > 0 && self.skl() > 0
   }
 
   pub fn can_untie(&self) -> bool {
-  !self.is_stun() && !self.wrist && !self.leg && !self.arm && !self.lock
+    !self.is_stun() && !self.wrist && !self.leg && !self.arm && !self.lock && self.skl() > 0
   }
 
   pub fn can_ctrl_w(&self, ut : &Unit) -> bool {
@@ -360,11 +363,11 @@ impl Unit {
   }
 
   pub fn antibound_lv(&self) -> i32 {
-  if self.is_stun() {
-    get_lv(self.str()/2)
-  } else {
-    self.str_lv()
-  }
+    if self.is_stun() {
+      0
+    } else {
+      self.str_lv()
+    }
   }
 
   pub fn evd_lv(&self) -> i32 {
