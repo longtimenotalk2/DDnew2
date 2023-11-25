@@ -21,14 +21,14 @@ fn test6() {
     let dice = Dice::new(114514);
 
     let noel = Unit::new("诺艾尔", 10, 10, 10);
-    let yelin = Unit::new("叶  琳", 16, 14, 12);
+    let yelin = Unit::new("叶琳", 16, 14, 12);
     let alyssa = Unit::new("艾丽莎", 11, 15, 16);
     let elis = Unit::new("伊莉丝", 12, 18, 12);
 
-    let enemy0 = Unit::new("大  姐", 18, 18, 16);
-    let enemy1 = Unit::new("二  姐", 17, 12, 10);
-    let enemy2 = Unit::new("三  姐", 12, 12, 12);
-    let enemy3 = Unit::new("幺  妹", 8, 12, 14);
+    let enemy0 = Unit::new("大姐", 18, 18, 16);
+    let enemy1 = Unit::new("二姐", 17, 12, 10);
+    let enemy2 = Unit::new("三姐", 12, 12, 12);
+    let enemy3 = Unit::new("幺妹", 8, 12, 14);
 
     let mut team = Team::new(vec!(noel, elis, alyssa, yelin), vec!(enemy0, enemy1, enemy2, enemy3), dice);
 
@@ -38,12 +38,12 @@ fn test6() {
 
 fn test7() {
     let noel = Unit::new("诺艾尔", 10, 10, 10);
-    let mut yelin = Unit::new("叶  琳", 16, 14, 12);
+    let mut yelin = Unit::new("叶琳", 16, 14, 12);
     // yelin.take_stun(2);
-    let e1 = Unit::new("杂鱼A ", 9,9,12);
-    let e2 = Unit::new("杂鱼B ", 9,12,9);
-    let e3 = Unit::new("杂鱼C ", 12,9,9);
-    let e4 = Unit::new("杂鱼D ", 12,9,9);
+    let e1 = Unit::new("杂鱼甲", 9,9,12);
+    let e2 = Unit::new("杂鱼乙", 9,12,9);
+    let e3 = Unit::new("杂鱼丙", 12,9,9);
+    let e4 = Unit::new("杂鱼丁", 12,9,9);
     let dice = Dice::new(114514);
 
     let mut team = Team::new(vec!( yelin), vec!(e1, e2, e3), dice);
@@ -54,9 +54,5 @@ fn test7() {
 
 fn main() {
     println!("Hello, world!");
-    test6(); 
-
-
-    
-    
+    test7();
 }

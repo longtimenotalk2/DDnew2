@@ -9,8 +9,10 @@ mod full_turn;
 mod io;
 mod ai;
 
+use crate::game::art::draw_board;
+
 #[derive(Clone)]
-struct Pawn {
+pub struct Pawn {
   pub unit : Unit,
   pub team : u8,
   pub id : u32,
@@ -27,31 +29,6 @@ pub struct Team {
 }
 
 impl Team {
-  pub fn state(&self) -> String {
-    let mut s = String::new();
-    writeln!(s, "第{:^3}回合, 力 技 速(伤,  状态   束缚)", self.turn).unwrap();
-    for p in &self.board {
-      let sh = if p.unit.action() {
-        if p.unit.can_select() {
-          if self.wait_ids.contains(&p.id) {
-            "w"
-          } else if p.unit.spd() >= self.spd_now.unwrap_or(-1) {
-            "|"
-          } else {
-            "·"
-          }
-        } else {
-          "x"
-        }
-          
-      } else {
-        " "
-      };
-      writeln!(s, "{sh}{}", p.unit.state()).unwrap();
-    }
-    s
-  }
-  
   pub fn new(a : Vec<Unit>, b : Vec<Unit>, dice : Dice) -> Team {
     let mut board = vec!();
     let mut id : u32 = 1;
@@ -77,7 +54,12 @@ impl Team {
     }
   }
 
-
+  pub fn draw(&self, active_ids : &[u32]) {
+    let lines = draw_board(&self.board, active_ids, &self.next_ids);
+    for l in lines {
+      println!("{}", l);
+    }
+  }
 
   fn cancel_ctrl(&mut self, p : i32) {
   let u = &self.pos_pawn(p).unwrap().unit;

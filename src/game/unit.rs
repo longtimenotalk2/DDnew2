@@ -14,10 +14,10 @@ pub struct Unit {
   master : Option<u32>,
   action : bool,
   // bound
-  arm : bool,
-  wrist : bool,
-  leg : bool,
-  lock : bool,
+  pub arm : bool,
+  pub wrist : bool,
+  pub leg : bool,
+  pub lock : bool,
 }
 
 impl Unit {
@@ -114,6 +114,10 @@ impl Unit {
   0.max(self.spd - self.hurt_lv())
   }
 
+  pub fn hurt(&self) -> i32 {
+    self.hurt
+  }
+
   pub fn str_lv(&self) -> i32 {
   if self.str() == 0 {
     0
@@ -151,6 +155,10 @@ impl Unit {
   self.stun
   }
 
+  pub fn broke(&self) -> i32 {
+    self.broke
+  }
+
   pub fn take_broke(&mut self) {
     self.broke += 1;
   }
@@ -159,12 +167,12 @@ impl Unit {
     self.broke = 0;
   }
 
-  pub fn broke(&self) -> i32 {
-    self.broke
+  pub fn mastered_id(&self) -> Option<u32> {
+    self.master
   }
 
-  pub fn mastered_id(&self) -> Option<u32> {
-  self.master
+  pub fn ctrled_id(&self) -> Option<u32> {
+    self.ctrl
   }
 
   pub fn recover(&mut self) {

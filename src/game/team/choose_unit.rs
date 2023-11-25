@@ -10,8 +10,13 @@ impl Team {
     // 主要
     let next = self.decide_next(self.spd_now, &self.wait_ids, self.next_team);
     if let Some((mut spd, team, mut ids)) = next {
-      // 如果此时选择等待，再次行动的依然是我方，则自动选择等待
-      let mut wait_ids = self.wait_ids.clone();
+      // 如果此时选择行动，再次行动的依然是我方，则自动选择等待
+      let mut wait_ids = vec!();
+      for &id in &self.wait_ids{
+        if self.pos_pawn(self.id_pos(id)).unwrap().team == team {
+          wait_ids.push(id);
+        }
+      }
       loop {
         for id in &ids {
           if !wait_ids.contains(id) {

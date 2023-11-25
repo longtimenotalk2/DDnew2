@@ -8,7 +8,7 @@ use super::*;
 impl Team {
   pub fn sub_turn(&mut self, o : bool, ai_1 : bool) -> bool {
     if let Some((team, ids, can_wait)) = self.get_choose_unit() {
-      if o {print!("{}", self.state_ids(&ids))}
+      if o {self.draw(&ids)}
       let idq = if ai_1 && team == 1 {
         Some(self.ai_unit(&ids))
       } else {
@@ -30,31 +30,6 @@ impl Team {
     } else {
       false
     }
-  }
-
-  pub fn state_ids(&self, ids : &[u32]) -> String {
-    let mut s = String::new();
-    writeln!(s, "第{:^3}回合, 力 技 速(伤,  状态   束缚)", self.turn).unwrap();
-    for p in &self.board {
-      let sh = if p.unit.action() {
-        if p.unit.can_select() {
-          if ids.contains(&p.id){
-            ">"
-          }else if self.next_ids.contains(&p.id) {
-            "|"
-          } else {
-            "·"
-          }
-        } else {
-          "x"
-        }
-          
-      } else {
-        " "
-      };
-      writeln!(s, "{sh}{}", p.unit.state()).unwrap();
-    }
-    s
   }
   
   fn skill_choose(&self, id : u32) -> Vec<Skill> {
