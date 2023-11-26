@@ -18,7 +18,7 @@ fn test5() {
 }
 
 fn test6() {
-    let dice = Dice::new(114514);
+    let dice = Dice::new(114516);
 
     let noel = Unit::new("诺艾尔", 10, 10, 10);
     let yelin = Unit::new("叶琳", 16, 14, 12);
@@ -54,5 +54,5 @@ fn test7() {
 
 fn main() {
     println!("Hello, world!");
-    test7();
+    test6();
 }

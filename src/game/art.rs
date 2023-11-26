@@ -17,6 +17,22 @@ pub enum Color {
 
 pub fn draw_board(pawns : &[Pawn], active_ids : &[u32], next_ids : &[u32]) -> Vec<String> {
   let mut list : Vec<Vec<String>> = vec!();
+  // 左边框
+  let mut zuo = vec!();
+  zuo.push(c("力", &Color::Red));
+  zuo.push(c("技", &Color::Blue));
+  zuo.push(c("速", &Color::Green));
+  zuo.push(c("伤", &Color::None));
+  zuo.push(c("破", &Color::None));
+  zuo.push(format!(" {}", zbfg(0, 22)));
+  for _ in 0..7 {
+    zuo.push(format!(" {}", zbfz(1, 2)));
+  }
+  zuo.push(format!(" {}", zbfg(2, 22)));
+
+  list.push(zuo);
+
+  // 主体
   for (i, p) in pawns.iter(). enumerate() {
     let id = p.id;
     let team = p.team;
@@ -41,6 +57,22 @@ pub fn draw_board(pawns : &[Pawn], active_ids : &[u32], next_ids : &[u32]) -> Ve
       ctrl_lr,
     ))
   }
+
+  // 右边框
+  let mut zuo = vec!();
+  zuo.push(c("力", &Color::Red));
+  zuo.push(c("技", &Color::Blue));
+  zuo.push(c("速", &Color::Green));
+  zuo.push(c("伤", &Color::None));
+  zuo.push(c("破", &Color::None));
+  zuo.push(format!("{} ", zbfg(1, 22)));
+  for _ in 0..7 {
+    zuo.push(format!("{} ", zbfz(1, 2)));
+  }
+  zuo.push(format!("{} ", zbfg(3, 22)));
+
+  list.push(zuo);
+  
   // 重组
   vvs2vs(list)
 }
@@ -144,13 +176,16 @@ pub fn draw_unit(
   let str = c(&format!("{:^4}", u.str()), &Color::Red);
   let skl = c(&format!("{:^4}", u.skl()), &Color::Blue);
   let spd = c(&format!("{:^4}", u.spd()), &Color::Green);
-  let hurt = format!("{:^4}", u.hurt());
+  let hurt = if u.hurt() > 0 {format!("{:^4}", u.hurt())} else {"    ".to_string()};
+  let broke = if u.broke() > 0 {format!("{:^4}", u.broke())} else {"    ".to_string()};
+
+  let border = zbfz(0, 2).repeat(4).to_string();
   
 
   if u.block() {
-    vec![str, skl, spd, hurt, line_pir, line1, line2, line3, line4, line5, line_def]
+    vec![str, skl, spd, hurt, broke, border.clone(), line_pir, line1, line2, line3, line4, line5, line_def, border]
   } else {
-    vec![str, skl, spd, hurt, line_pir, "    ".to_string(), line1, line2, line3, line4, line_def]
+    vec![str, skl, spd, hurt, broke, border.clone(), line_pir, "    ".to_string(), line1, line2, line3, line4, line_def, border]
   }
   
 }
@@ -230,10 +265,14 @@ fn c(s : &str, color : &Color) -> String {
 ┚┛├┝┞┟┠┡┢┣┤┥┦┧┨┩┪┫┬┭┮┯┰┱┲┳┴┵┶┷┸┹┺┻┼┽┾┿╀╁╂╃╄╅╆╇╈╉╊╋╪╫╬═
 ║
 ╒
-╓╔╕
+╓╔
+╕
 ╖╗╘
 ╙╚╛
-╜╝╞╟╠╡╢╣╤╥╦╧╨╩╔╗╝╚╬
+╜╝╞╟╠╡╢╣╤╥╦╧╨╩╔╗
+╝
+╚
+╬
 ═╓╩┠┨┯┷┏┓┗┛┳⊥﹃﹄┌╮
 ╭
 ╯╰╳
@@ -250,6 +289,7 @@ fn zbfg(wz : u8, sh : u8) -> &'static str {
         1 => "┌",
         2 => "╒",
         3 => "┍",
+        22 => "╔",
         _ => panic!(),
       }
     },
@@ -259,6 +299,7 @@ fn zbfg(wz : u8, sh : u8) -> &'static str {
         1 => "┐",
         2 => "╕",
         3 => "┑",
+        22 => "╗",
         _ => panic!(),
       }
     },
@@ -268,7 +309,7 @@ fn zbfg(wz : u8, sh : u8) -> &'static str {
         1 => "└",
         2 => "╘",
         3 => "┕",
-        _ => panic!(),
+        22 => "╚",
         _ => panic!(),
       }
     },
@@ -278,6 +319,7 @@ fn zbfg(wz : u8, sh : u8) -> &'static str {
         1 => "┘",
         2 => "╛",
         3 => "┙",
+        22 => "╝",
         _ => panic!(),
       }
     },

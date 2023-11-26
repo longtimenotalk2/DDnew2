@@ -167,6 +167,14 @@ impl Team {
   }
   panic!("id not found");
   }
+
+  fn p2pw(&self, pos : i32) -> &Pawn {
+    self.pos_pawn(pos).unwrap()
+  }
+
+  fn id2pw(&self, id : u32) -> &Pawn {
+    self.pos_pawn(self.id_pos(id)).unwrap()
+  }
 }
 
 fn get_lv(i : i32) -> i32 {

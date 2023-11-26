@@ -57,21 +57,21 @@ impl Team {
           let u = &self.pos_pawn(*p).unwrap().unit;
           let ana = attack_analyse(ua, u, Attack::Punch);
           let pir = if ana.pierce {"√"} else {"×"};
-          println!("{} : 挥拳 -> {}{} (命{}% 穿{pir} 爆{} 伤{})", i, u.name, u.id, ana.hit, ana.cri, ana.dmg_normal);
+          println!("{} : 挥拳 -> {} (命{}% 穿{pir} 爆{} 伤{})", i, u.name, ana.hit, ana.cri, ana.dmg_normal);
         },
         Skill::Kick(p) => {
           let u = &self.pos_pawn(*p).unwrap().unit;
           let ana = attack_analyse(ua, u, Attack::Kick);
           let pir = if ana.pierce {"√"} else {"×"};
-          println!("{} : 踢腿 -> {}{} (命{}% 穿{pir} 爆{} 伤{})", i, u.name, u.id, ana.hit, ana.cri, ana.dmg_normal);
+          println!("{} : 踢腿 -> {} (命{}% 穿{pir} 爆{} 伤{})", i, u.name, ana.hit, ana.cri, ana.dmg_normal);
         },
         Skill::Ctrl(p) => {
           let u = &self.pos_pawn(*p).unwrap().unit;
-          println!("{} : 压制并捆绑 -> {}{}", i, u.name, u.id);
+          println!("{} : 压制并捆绑 -> {}", i, u.name);
         },
         Skill::Untie(p) => {
           let u = &self.pos_pawn(*p).unwrap().unit;
-          println!("{} : 解绑 -> {}{}", i, u.name, u.id);
+          println!("{} : 解绑 -> {}", i, u.name);
         },
         Skill::UntieSelf => {
           println!("{} : 解绑自己", i);
@@ -119,7 +119,8 @@ impl Team {
     // 针对各目标逐一给出提示
     for (pt, skls) in map {
       let idt = self.pos_pawn(pt).unwrap().id;
-      write!(s, "{idt}:").unwrap();
+      let namet = &self.id2pw(idt).unit.name;
+      write!(s, "{namet}:").unwrap();
       if skls.contains(&Skill::Ctrl(pt)) {
         s += "控";
       }
@@ -150,7 +151,8 @@ impl Team {
     let mut s = String::new();
     for &id in &self.next_ids {
       let sf = self.skill_hint(id);
-      write!(s, "{id}->{sf};").unwrap();
+      let name = &self.id2pw(id).unit.name;
+      write!(s, "{name}->{sf};").unwrap();
     }
     if s.len() >= 1 {
       s = s[..s.len()-1].to_string();
