@@ -51,8 +51,49 @@ fn test7() {
     team.play()
 }
 
+fn roll_name(names : &mut Vec<&str>, dice : &mut Dice) -> String {
+    let n = dice.d(names.len() as i32) - 1;
+    return names.remove(n as usize).to_string();
+}
+
+fn roll_attr(a : i32, dice : &mut Dice ) -> Vec<i32> {
+    let mut attrs = vec![5, 5, 5];
+    for _ in 0..a {
+        let n = dice.d(attrs.len() as i32) - 1;
+        attrs[n as usize] += 1;
+    }
+    attrs
+}
+
+fn test8() {
+    let mut names = vec!["星", "三月七", "艾丝妲", "娜塔莎", "希尔", "布洛妮", "佩拉", "姬子", "黑塔", "克拉拉", "虎克", "御空", "停云", "符玄", "青雀", "素裳", "桂乃芬", "寒鸦", "希露瓦", "可利亚", "玲可", "阮梅", "雪衣", "藿藿", "静流", "托帕", "卡芙卡", "银狼", "白露"];
+
+    let A = 30;
+    let n0 = [A, A, A, A];
+    let n1 = [A, A, A, A];
+
+    let mut di = Dice::new(114515);
+
+    let mut t0 = vec!();
+    for a in n0 {
+        let attr = roll_attr(a, &mut di);
+        t0.push(Unit::new(&roll_name(&mut names, &mut di), attr[0], attr[1], attr[2]));
+    }
+
+    let mut t1 = vec!();
+    for a in n1 {
+        let attr = roll_attr(a, &mut di);
+        t1.push(Unit::new(&roll_name(&mut names, &mut di), attr[0], attr[1], attr[2]));
+    }
+
+    let mut team = Team::new(t0, t1, Dice::new(114514));
+
+    team.play();
+    
+}
+
 
 fn main() {
     println!("Hello, world!");
-    test6();
+    test8();
 }
