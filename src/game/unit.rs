@@ -348,7 +348,7 @@ impl Unit {
     } else if ut.restrain() {
       true
     } else if ut.struggle_lv() == 0 || u.str_lv() - ut.struggle_lv() >= 2 {
-      ut.can_stand() == false || u.skl_lv() >= ut.spd_lv()
+      true // ut.can_stand() == false || u.skl_lv() >= ut.spd_lv()
     } else {
       false
     }

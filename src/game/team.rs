@@ -55,7 +55,7 @@ impl Team {
   }
 
   pub fn draw(&self, active_ids : &[u32]) {
-    let lines = draw_board(&self.board, active_ids, &self.next_ids);
+    let lines = draw_board(&self.board, active_ids, &self.next_ids, &self.spd_now);
     for l in lines {
       println!("{}", l);
     }

@@ -15,7 +15,7 @@ pub enum Color {
   Green,
 }
 
-pub fn draw_board(pawns : &[Pawn], active_ids : &[u32], next_ids : &[u32]) -> Vec<String> {
+pub fn draw_board(pawns : &[Pawn], active_ids : &[u32], next_ids : &[u32], spd : &Option<i32>) -> Vec<String> {
   let mut list : Vec<Vec<String>> = vec!();
   // 左边框
   let mut zuo = vec!();
@@ -55,6 +55,7 @@ pub fn draw_board(pawns : &[Pawn], active_ids : &[u32], next_ids : &[u32]) -> Ve
       active,
       next,
       ctrl_lr,
+      spd,
     ))
   }
 
@@ -83,6 +84,7 @@ pub fn draw_unit(
   active : bool,
   next : bool,
   ctrl_lr : Option<bool>,
+  spd : &Option<i32>
 ) -> Vec<String> {
   let mut line1 = String::new();
   let mut line2 = String::new();
@@ -93,7 +95,7 @@ pub fn draw_unit(
   // 边框颜色
   let bc = Color::None;
   // 边框样式
-  let sh = if active {3} else if next {2} else if u.action() {1} else {0};
+  let sh = if active {2} else if next {3} else if u.action() {1} else {0};
   let ss = if active {1} else if next {1} else if u.action() {1} else {0};
   let bd1 = if u.arm {"≈"} else if u.wrist {"~"} else {""};
   let bd2 = if u.lock {"≈"} else if u.leg {"~"} else {""};
@@ -118,6 +120,7 @@ pub fn draw_unit(
     if stun > 0 {line1 += &format!("@{}", stun)} else {line1 += "  "};
     line5 += "  ";
   } else {
+    let sh = if next && u.spd() < spd.unwrap_or(-1) {4} else {sh};
     line1 += &c(zbfz(0,sh), &bc);
     line1 += &c(zbfz(0,sh), &bc);
     line5 += &c(zbfz(0,sh), &bc);
@@ -161,17 +164,33 @@ pub fn draw_unit(
     line5 += &c(zbfg(3,sh), &bc);
   }
 
-  let mut def = -3;
-  if u.can_def() {
-    def = u.skl_lv() - u.broke() - if u.mastered() {1} else {0};
-  }
-  let line_def = star(def).to_string();
-  
-  let line_pir = if (active || next) && u.can_kick() {
-    star(u.skl_lv()).to_string()
+
+  // 技量与格挡
+  let t_def : (i32, i32) = if u.can_def() {
+    let def = u.skl_lv() - u.broke() - if u.mastered() {1} else {0};
+    if def >= 0 {
+      (def, u.skl_lv() - def)
+    } else {
+      (0, u.skl_lv())
+    }
   } else {
-    "    ".to_string()
+    (0, u.skl_lv())
   };
+
+  let line_def = format!(" {}{} ", dot(t_def.0), c(dot(t_def.1), &Color::Red));
+
+  // 力量轴
+
+  let line_ctrl = if u.ctrled() || u.defeated() {"    ".to_string()} else if !u.block() {pm(0)} else {
+    pm(u.struggle_lv())
+  };
+  
+  
+  // let line_pir = if (active || next) && u.can_kick() {
+  //   star(u.skl_lv()).to_string()
+  // } else {
+  //   "    ".to_string()
+  // };
 
   let str = c(&format!("{:^4}", u.str()), &Color::Red);
   let skl = c(&format!("{:^4}", u.skl()), &Color::Blue);
@@ -183,9 +202,9 @@ pub fn draw_unit(
   
 
   if u.block() {
-    vec![str, skl, spd, hurt, broke, border.clone(), line_pir, line1, line2, line3, line4, line5, line_def, border]
+    vec![str, skl, spd, hurt, broke, border.clone(), line_ctrl, line1, line2, line3, line4, line5, line_def, border]
   } else {
-    vec![str, skl, spd, hurt, broke, border.clone(), line_pir, "    ".to_string(), line1, line2, line3, line4, line_def, border]
+    vec![str, skl, spd, hurt, broke, border.clone(), line_ctrl, "    ".to_string(), line1, line2, line3, line4, line_def, border]
   }
   
 }
@@ -214,7 +233,32 @@ fn star(n : i32) -> &'static str {
   }
 }
 
-fn d2cd(d : i32) -> String {
+
+fn dot(d : i32) -> &'static str  {
+  match d {
+    0 => " ",
+    1 => "·",
+    2 => ":",
+    3 => "∴",
+    4 => "∷",
+    5 => "✣",
+    _ => "?",
+  }
+}
+
+fn pm(d : i32) -> String {
+  match d {
+    0 => c(" x  ", &Color::Red),
+    1 => c(" -- ", &Color::Red),
+    2 => c(" -  ", &Color::Red),
+    3 => "    ".to_string(),
+    4 => c(" +  ", &Color::None),
+    5 => c(" ++ ", &Color::None),
+    _ => c(" ?  ", &Color::None),
+  }
+}
+
+fn _d2cd(d : i32) -> String {
   if d == 0 {"X ".to_string()} else {
     let big = d / 5;
     let small = d - big * 5;
@@ -255,7 +299,10 @@ fn c(s : &str, color : &Color) -> String {
 │
 ┃
 ╌
-╍╎╏┄┅┆┇┈┉┊
+╍
+╎╏┄
+┅
+┆┇┈┉┊
 ┋┌
 ┍
 ┎┏┐
@@ -337,6 +384,7 @@ fn zbfz(hs : u8, st : u8) -> &'static str {
         1 => "─",
         2 => "═",
         3 => "━",
+        4 => "╍",
         _ => panic!(),
       }
     },
