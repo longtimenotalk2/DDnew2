@@ -72,10 +72,12 @@ fn test8() {
     let b = 25;
     let c = 20;
     let d = 15;
+    let df1 = 4;
     let n0 = [d, c, b, a];
-    let n1 = [a, b, c, d];
+    let n1 = [a+df1, b+df1, c+df1, d+df1];
 
-    let mut di = Dice::new(114515);
+    let seed = 114525;
+    let mut di = Dice::new(seed);
 
     let mut t0 = vec!();
     for a in n0 {
@@ -89,10 +91,24 @@ fn test8() {
         t1.push(Unit::new(&roll_name(&mut names, &mut di), attr[0], attr[1], attr[2]));
     }
 
-    let mut team = Team::new(t0, t1, Dice::new(114514));
+    let mut team = Team::new(t0, t1, Dice::new(seed+233));
 
     team.play();
     
+}
+
+
+fn test0() {
+    let mut a1 = Unit::new("佩拉", 18,12,18);
+    let mut a2 = Unit::new("静流", 5, 5, 6);
+    let mut b1 = Unit::new("艾丝妲", 5, 5, 12);
+    let mut b2 = Unit::new("姬子", 5, 5, 17);
+    a1.take_master(3);
+    b1.take_ctrl(2);
+    b1.take_bound();
+    b1.take_bound();
+    let mut team = Team::new(vec!(a2, a1), vec!(b1, b2), Dice::new(114514));
+    team.play();
 }
 
 

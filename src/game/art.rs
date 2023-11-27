@@ -49,13 +49,16 @@ pub fn draw_board(pawns : &[Pawn], active_ids : &[u32], next_ids : &[u32], spd :
     } else {
       None
     };
+
+    let next_if_wait = if next && (p.unit.spd() >= spd.unwrap_or(-1) || active_ids.len() <= 1) {false} else {true};
+      
     list.push(draw_unit(
       &p.unit,
       team,
       active,
       next,
       ctrl_lr,
-      spd,
+      next_if_wait,
     ))
   }
 
@@ -84,7 +87,7 @@ pub fn draw_unit(
   active : bool,
   next : bool,
   ctrl_lr : Option<bool>,
-  spd : &Option<i32>
+  next_if_wait : bool,
 ) -> Vec<String> {
   let mut line1 = String::new();
   let mut line2 = String::new();
@@ -120,7 +123,7 @@ pub fn draw_unit(
     if stun > 0 {line1 += &format!("@{}", stun)} else {line1 += "  "};
     line5 += "  ";
   } else {
-    let sh = if next && u.spd() < spd.unwrap_or(-1) {4} else {sh};
+    let sh = if next && next_if_wait {4} else {sh};
     line1 += &c(zbfz(0,sh), &bc);
     line1 += &c(zbfz(0,sh), &bc);
     line5 += &c(zbfz(0,sh), &bc);
@@ -177,7 +180,7 @@ pub fn draw_unit(
     (0, u.skl_lv())
   };
 
-  let line_def = format!(" {}{} ", dot(t_def.0), c(dot(t_def.1), &Color::Red));
+  let line_def = format!(" {}{}{}", dot(t_def.0), c(dot(t_def.1), &Color::Red), c(d2c(u.spd_lv()), &Color::Green));
 
   // 力量轴
 
@@ -185,12 +188,6 @@ pub fn draw_unit(
     pm(u.struggle_lv())
   };
   
-  
-  // let line_pir = if (active || next) && u.can_kick() {
-  //   star(u.skl_lv()).to_string()
-  // } else {
-  //   "    ".to_string()
-  // };
 
   let str = c(&format!("{:^4}", u.str()), &Color::Red);
   let skl = c(&format!("{:^4}", u.skl()), &Color::Blue);
@@ -221,17 +218,6 @@ fn vvs2vs(vvs : Vec<Vec<String>>) -> Vec<String> {
   lines
 }
 
-fn star(n : i32) -> &'static str {
-  match n {
-    1 => " .  ",
-    2 => " .. ",
-    3 => " :. ",
-    4 => " :: ",
-    5 => " ∴: ",
-    6 => " ∴∴ ",
-    _ => "    ",
-  }
-}
 
 
 fn dot(d : i32) -> &'static str  {
@@ -258,24 +244,15 @@ fn pm(d : i32) -> String {
   }
 }
 
-fn _d2cd(d : i32) -> String {
-  if d == 0 {"X ".to_string()} else {
-    let big = d / 5;
-    let small = d - big * 5;
-    let c = match big {
-      0 => "D",
-      1 => "C",
-      2 => "B",
-      3 => "A",
-      4 => "S",
-      _ => "?",
-    };
-    if small > 0 {
-      format!("{c}{small}")
-    } else {
-      format!("{c} ")
-    }
-    
+fn d2c(d : i32) -> &'static str {
+  match d {
+    0 => " ",
+    1 => "D",
+    2 => "C",
+    3 => "B",
+    4 => "A",
+    5 => "S",
+    _ => "?",
   }
 }
 

@@ -222,7 +222,7 @@ fn attack_analyse(act : &Unit, tar : &Unit, tp : Attack) -> AttackData {
   if !tar.can_def() {
     pierce = true;
   }
-  let hit = 0.max(100.min(base_hit + (act.skl_lv() - tar.spd_lv()) * 25));
+  let hit = 0.max(100.min(base_hit + (act.spd_lv() - tar.spd_lv()) * 25));
   let mut cri = 0.max(100.min(base_cri + (act.skl_lv() - tar.spd_lv()) * 10));
   if !pierce {
     cri = 0;

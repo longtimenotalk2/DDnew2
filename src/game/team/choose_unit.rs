@@ -9,7 +9,7 @@ impl Team {
   pub fn get_choose_unit(&mut self) -> Option<(u8, Vec<u32>, bool)> {
     // 主要
     let dnow = self.decide_now(self.spd_now, &self.wait_ids, self.next_team);
-    if let Some((mut spd, team, mut ids)) = dnow {
+    if let Some((spd, team, mut ids)) = dnow {
 
       // 更新team的当前速度
       self.spd_now = Some(spd);
@@ -129,7 +129,7 @@ impl Team {
     let mut spd_new = None;
     let mut ids = vec!();
     for pw in &self.board {
-      if pw.unit.can_select() && pw.team == team && (pw.unit.spd() > spd_l.unwrap_or(-1) || pw.unit.spd() == spd_now){
+      if pw.unit.can_select() && pw.team == team && (pw.unit.spd() > spd_l.unwrap_or(-1) || pw.unit.spd() >= spd_now){
         ids.push(pw.id);
         if pw.unit.spd() < spd_new.unwrap_or(999) {
           spd_new = Some(pw.unit.spd());
@@ -137,40 +137,6 @@ impl Team {
       }
     }
 
-    Some((spd_new.unwrap_or(0), team, ids))
-    
-
-    /*
-    if let Some(spd) = spd {
-      // 存在当前速度，则寻找所有大于等于该速度的非等待角色
-      let mut ids = [vec!(), vec!()];
-      let next_team : usize = next_team as usize;
-      for pw in &self.board {
-        if pw.unit.can_select() && !wait_ids.contains(&pw.id) && pw.unit.spd() >= spd {
-          let team = pw.team as usize;
-          ids[team].push(pw.id);
-        }
-      }
-      // 优先下一方，考虑所有超速角色
-      if ids[next_team].len() > 0 {
-        let mut l = vec!();
-        for pw in &self.board {
-          if pw.unit.can_select() &&  pw.unit.spd() >= spd && pw.team == next_team as u8 {
-            l.push(pw.id);
-          }
-        }
-        return Some((spd, next_team as u8, l))
-      } else if ids[1 - next_team].len() > 0 {
-        let mut l = vec!();
-        for pw in &self.board {
-          if pw.unit.can_select() &&  pw.unit.spd() >= spd && pw.team != next_team as u8 {
-            l.push(pw.id);
-          }
-        }
-        return Some((spd, 1 - next_team as u8, l))
-      }
-    }
-    None
-    */
+    Some((spd_new.unwrap(), team, ids))
   }
 }
