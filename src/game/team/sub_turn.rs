@@ -7,6 +7,7 @@ use super::*;
 
 impl Team {
   pub fn sub_turn(&mut self, o : bool, ai_1 : bool) -> bool {
+    self.save_to_file().unwrap();
     if let Some((team, ids, can_wait)) = self.get_choose_unit() {
       if o {self.draw(&ids)}
       let idq = if ai_1 && team == 1 {

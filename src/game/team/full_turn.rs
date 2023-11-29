@@ -7,17 +7,26 @@ use super::*;
 
 impl Team {
   pub fn play(&mut self) {
-    let r = self.loop_turn(100, true, true);
+    let is_load = if let Ok(t) = Self::load_from_file() {
+      *self = t;
+      true
+    } else {
+      false
+    };
+    let r = self.loop_turn(100, true, true, is_load);
     match r {
       Some(0) => println!("你输了,游戏结束"),
       Some(1) => println!("你赢了,游戏结束"),
       _ => println!("超时,游戏结束"),
+
     }
+    Self::delete_file().unwrap();
   }
   
-  pub fn loop_turn(&mut self, n: i32, o : bool, ai_1 : bool) -> Option<u8> {
+  pub fn loop_turn(&mut self, n: i32, o : bool, ai_1 : bool, mut is_load : bool) -> Option<u8> {
     for _ in 0..n {
-      self.full_turn(o, ai_1);
+      self.full_turn(o, ai_1, is_load);
+      is_load = false;
       if let Some(i) = self.is_end() {
         return Some(i)
       }
@@ -25,10 +34,12 @@ impl Team {
     None
   }
   
-  pub fn full_turn(&mut self, o : bool, ai_1 : bool) {
-    self.turn += 1;
-    self.spd_now = None;
-    self.pre(o);
+  pub fn full_turn(&mut self, o : bool, ai_1 : bool, is_load : bool) {
+    if is_load == false {
+      self.turn += 1;
+      self.spd_now = None;
+      self.pre(o);
+    }
     loop {
       if self.sub_turn(o, ai_1) == false {
         self.end(o);

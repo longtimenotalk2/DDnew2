@@ -1,6 +1,7 @@
 use std::fmt::Write;
+use super::file::*;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Unit {
   pub name : String,
   pub id : u32,
@@ -21,6 +22,64 @@ pub struct Unit {
 }
 
 impl Unit {
+  pub fn load(s : String) -> Unit {
+    let mut s = s.trim().to_string();
+    let mut s = s.split("\n");
+    let name = load_string(s.next().unwrap().to_string());
+    let id = load_u32(s.next().unwrap().to_string());
+    let str = load_i32(s.next().unwrap().to_string());
+    let skl = load_i32(s.next().unwrap().to_string());
+    let spd = load_i32(s.next().unwrap().to_string());
+    let hurt = load_i32(s.next().unwrap().to_string());
+    let stun = load_i32(s.next().unwrap().to_string());
+    let broke = load_i32(s.next().unwrap().to_string());
+    let ctrl = load_option_u32(s.next().unwrap().to_string());
+    let master = load_option_u32(s.next().unwrap().to_string());
+    let action = load_bool(s.next().unwrap().to_string());
+    let arm = load_bool(s.next().unwrap().to_string());
+    let wrist = load_bool(s.next().unwrap().to_string());
+    let leg = load_bool(s.next().unwrap().to_string());
+    let lock = load_bool(s.next().unwrap().to_string());
+    Unit {
+      name,
+      id,
+      str,
+      skl,
+      spd,
+      hurt,
+      stun,
+      broke,
+      ctrl,
+      master,
+      action,
+      arm,
+      wrist, 
+      leg,
+      lock,
+    }
+  }
+
+    
+  pub fn save(&self) -> String {
+    let mut s = String::new();
+    s += &save_string(self.name.clone());
+    s += &save_u32(self.id);
+    s += &save_i32(self.str);
+    s += &save_i32(self.skl);
+    s += &save_i32(self.spd);
+    s += &save_i32(self.hurt);
+    s += &save_i32(self.stun);
+    s += &save_i32(self.broke);
+    s += &save_option_u32(self.ctrl);
+    s += &save_option_u32(self.master);
+    s += &save_bool(self.action);
+    s += &save_bool(self.arm);
+    s += &save_bool(self.wrist);
+    s += &save_bool(self.leg);
+    s += &save_bool(self.lock);
+    s
+  }
+  
   pub fn new(name : &str, str : i32, skl : i32, spd : i32) -> Self {
     Self {
       name : name.to_string(),

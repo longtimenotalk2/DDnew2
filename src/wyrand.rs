@@ -40,4 +40,16 @@ impl Dice {
         let result : i32 = (rand % nu).try_into().unwrap();
         result + 1
     }
+
+    pub fn save(&self) -> String {
+        let mut s = String::new();
+        s.push_str(&self.wy.state.to_string());
+        s += "\n";
+        s
+    }
+
+    pub fn load(s : String) -> Self {
+        let wy = s.trim().parse::<u64>().unwrap();
+        Dice::new(wy)
+    }
 }

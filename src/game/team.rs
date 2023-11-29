@@ -10,6 +10,10 @@ mod io;
 mod ai;
 
 use crate::game::art::draw_board;
+use super::file::*;
+use std::fs::File;
+use std::io::Write as OtherWrite;
+use std::io::Read;
 
 #[derive(Clone)]
 pub struct Pawn {
@@ -29,6 +33,84 @@ pub struct Team {
 }
 
 impl Team {
+
+  pub fn delete_file() -> std::io::Result<()> {
+    let path = &"save0.did";
+    std::fs::remove_file(path)?;
+    Ok(())
+  }
+
+  pub fn load_from_file() -> std::io::Result<Self> {
+    let path = &"save0.did";
+    let mut f = File::open(path)?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    Ok(Self::load(s))
+  }
+
+  pub fn save_to_file(&self) -> std::io::Result<()> {
+    let path = &"save0.did";
+    let f = File::create(path);
+    let mut f = f.unwrap_or(File::open(path).unwrap());
+    let s = self.save();
+    f.write_all(&s.as_bytes())?;
+    Ok(())
+  }
+  
+  pub fn load(s: String) -> Team {
+    let mut s : Vec<&str> = s.split("\n").collect();
+    let dice = Dice::load(s.remove(0).to_string());
+    let turn = load_i32(s.remove(0).to_string());
+    let next_team = load_u8(s.remove(0).to_string());
+    let spd_now = load_option_i32(s.remove(0).to_string());
+    let wait_ids = load_vec_u32(s.remove(0).to_string());
+    let next_ids = load_vec_u32(s.remove(0).to_string());
+    let l = load_u32(s.remove(0).to_string());
+    let mut board = Vec::new();
+    let c = 15;
+    for _ in 0..l {
+      let su = s[0..c].join("\n");
+      let unit = Unit::load(su);
+      for _ in 0..c {s.remove(0);}
+      let team = load_u8(s.remove(0).to_string());
+      let id = load_u32(s.remove(0).to_string());
+      let p = Pawn {
+        unit,
+        team,
+        id,
+      };
+      board.push(p);
+    }
+    
+    Self {
+      board,
+      dice,
+      next_team,
+      wait_ids,
+      next_ids,
+      turn,
+      spd_now,
+    }
+  }
+  
+  pub fn save(&self) -> String {
+    let mut s = String::new();
+    s += &self.dice.save();
+    s += &save_i32(self.turn);
+    s += &save_u8(self.next_team);
+    s += &save_option_i32(self.spd_now);
+    s += &save_vec_u32(self.wait_ids.clone());
+    s += &save_vec_u32(self.next_ids.clone());
+    let l = self.board.len();
+    s += &save_u32(l as u32);
+    for pw in &self.board {
+      s += &pw.unit.save();
+      s += &save_u8(pw.team);
+      s += &save_u32(pw.id);
+    }
+    s
+  }
+  
   pub fn new(a : Vec<Unit>, b : Vec<Unit>, dice : Dice) -> Team {
     let mut board = vec!();
     let mut id : u32 = 1;

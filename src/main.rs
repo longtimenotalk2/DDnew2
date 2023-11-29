@@ -114,5 +114,17 @@ fn test0() {
 
 fn main() {
     println!("Hello, world!");
-    test8();
+    test6();
+
+    // use game::file::*;
+
+    // let a = save_vec_u32(vec!());
+    // let b = load_vec_u32(a);
+    // dbg!(&b);
+
+    // let mut a = Unit::new("艾丝妲", 5, 5, 5);
+    // a.take_ctrl(1);
+    // let s = a.save();
+    // let b = Unit::load(s);
+    // dbg!(b);
 }
