@@ -54,9 +54,8 @@ impl Team {
           // 比较两种攻击方式
           let u = &self.pos_pawn(p).unwrap().unit;
           let ut = &self.pos_pawn(pt).unwrap().unit;
-          let back = ut.mastered();
-          let punch = exp_dmg(&attack_analyse(u, ut, Attack::Punch, back));
-          let kick = exp_dmg(&attack_analyse(u, ut, Attack::Kick, back));
+          let punch = exp_dmg(&attack_analyse(u, ut, Attack::Punch));
+          let kick = exp_dmg(&attack_analyse(u, ut, Attack::Kick));
           if punch >= kick {
             return Skill::Punch(pt);
           } else {
@@ -82,7 +81,7 @@ impl Team {
   }
 }
 
-fn skill_pos(skl : &Skill) -> Option<i32> {
+pub fn skill_pos(skl : &Skill) -> Option<i32> {
   match skl {
     Skill::Ctrl(p) => Some(*p),
     Skill::Punch(p) => Some(*p),

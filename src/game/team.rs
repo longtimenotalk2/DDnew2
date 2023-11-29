@@ -9,8 +9,14 @@ mod full_turn;
 mod io;
 mod ai;
 
+use crate::game::art::draw_board;
+use super::file::*;
+use std::fs::File;
+use std::io::Write as OtherWrite;
+use std::io::Read;
+
 #[derive(Clone)]
-struct Pawn {
+pub struct Pawn {
   pub unit : Unit,
   pub team : u8,
   pub id : u32,
@@ -27,27 +33,80 @@ pub struct Team {
 }
 
 impl Team {
-  pub fn state(&self) -> String {
+
+  pub fn delete_file() -> std::io::Result<()> {
+    let path = &"save0.did";
+    std::fs::remove_file(path)?;
+    Ok(())
+  }
+
+  pub fn load_from_file() -> std::io::Result<Self> {
+    let path = &"save0.did";
+    let mut f = File::open(path)?;
     let mut s = String::new();
-    writeln!(s, "第{:^3}回合, 力 技 速(伤,  状态   束缚)", self.turn).unwrap();
-    for p in &self.board {
-      let sh = if p.unit.action() {
-        if p.unit.can_select() {
-          if self.wait_ids.contains(&p.id) {
-            "w"
-          } else if p.unit.spd() >= self.spd_now.unwrap_or(-1) {
-            "|"
-          } else {
-            "·"
-          }
-        } else {
-          "x"
-        }
-          
-      } else {
-        " "
+    f.read_to_string(&mut s)?;
+    Ok(Self::load(s))
+  }
+
+  pub fn save_to_file(&self) -> std::io::Result<()> {
+    let path = &"save0.did";
+    let f = File::create(path);
+    let mut f = f.unwrap_or(File::open(path).unwrap());
+    let s = self.save();
+    f.write_all(&s.as_bytes())?;
+    Ok(())
+  }
+  
+  pub fn load(s: String) -> Team {
+    let mut s : Vec<&str> = s.split("\n").collect();
+    let dice = Dice::load(s.remove(0).to_string());
+    let turn = load_i32(s.remove(0).to_string());
+    let next_team = load_u8(s.remove(0).to_string());
+    let spd_now = load_option_i32(s.remove(0).to_string());
+    let wait_ids = load_vec_u32(s.remove(0).to_string());
+    let next_ids = load_vec_u32(s.remove(0).to_string());
+    let l = load_u32(s.remove(0).to_string());
+    let mut board = Vec::new();
+    let c = 15;
+    for _ in 0..l {
+      let su = s[0..c].join("\n");
+      let unit = Unit::load(su);
+      for _ in 0..c {s.remove(0);}
+      let team = load_u8(s.remove(0).to_string());
+      let id = load_u32(s.remove(0).to_string());
+      let p = Pawn {
+        unit,
+        team,
+        id,
       };
-      writeln!(s, "{sh}{}", p.unit.state()).unwrap();
+      board.push(p);
+    }
+    
+    Self {
+      board,
+      dice,
+      next_team,
+      wait_ids,
+      next_ids,
+      turn,
+      spd_now,
+    }
+  }
+  
+  pub fn save(&self) -> String {
+    let mut s = String::new();
+    s += &self.dice.save();
+    s += &save_i32(self.turn);
+    s += &save_u8(self.next_team);
+    s += &save_option_i32(self.spd_now);
+    s += &save_vec_u32(self.wait_ids.clone());
+    s += &save_vec_u32(self.next_ids.clone());
+    let l = self.board.len();
+    s += &save_u32(l as u32);
+    for pw in &self.board {
+      s += &pw.unit.save();
+      s += &save_u8(pw.team);
+      s += &save_u32(pw.id);
     }
     s
   }
@@ -77,7 +136,12 @@ impl Team {
     }
   }
 
-
+  pub fn draw(&self, active_ids : &[u32]) {
+    let lines = draw_board(&self.board, active_ids, &self.next_ids, &self.spd_now);
+    for l in lines {
+      println!("{}", l);
+    }
+  }
 
   fn cancel_ctrl(&mut self, p : i32) {
   let u = &self.pos_pawn(p).unwrap().unit;
@@ -185,6 +249,14 @@ impl Team {
   }
   panic!("id not found");
   }
+
+  fn p2pw(&self, pos : i32) -> &Pawn {
+    self.pos_pawn(pos).unwrap()
+  }
+
+  fn id2pw(&self, id : u32) -> &Pawn {
+    self.pos_pawn(self.id_pos(id)).unwrap()
+  }
 }
 
 fn get_lv(i : i32) -> i32 {
@@ -208,8 +280,8 @@ struct AttackData {
   pub dmg_cri : i32,
 }
 
-fn attack_analyse(act : &Unit, tar : &Unit, tp : Attack, back : bool) -> AttackData {
-  let mut back_fix = if back {1} else {0};
+fn attack_analyse(act : &Unit, tar : &Unit, tp : Attack) -> AttackData {
+  let mut back_fix = if tar.mastered() {1} else {0};
   back_fix += tar.broke();
   let base_hit = match &tp {
     Attack::Punch => 100 ,
@@ -232,7 +304,7 @@ fn attack_analyse(act : &Unit, tar : &Unit, tp : Attack, back : bool) -> AttackD
   if !tar.can_def() {
     pierce = true;
   }
-  let hit = 0.max(100.min(base_hit + (act.skl_lv() - tar.spd_lv()) * 25));
+  let hit = 0.max(100.min(base_hit + (act.spd_lv() - tar.spd_lv()) * 25));
   let mut cri = 0.max(100.min(base_cri + (act.skl_lv() - tar.spd_lv()) * 10));
   if !pierce {
     cri = 0;

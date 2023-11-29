@@ -1,6 +1,7 @@
 use std::fmt::Write;
+use super::file::*;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Unit {
   pub name : String,
   pub id : u32,
@@ -14,13 +15,71 @@ pub struct Unit {
   master : Option<u32>,
   action : bool,
   // bound
-  arm : bool,
-  wrist : bool,
-  leg : bool,
-  lock : bool,
+  pub arm : bool,
+  pub wrist : bool,
+  pub leg : bool,
+  pub lock : bool,
 }
 
 impl Unit {
+  pub fn load(s : String) -> Unit {
+    let mut s = s.trim().to_string();
+    let mut s = s.split("\n");
+    let name = load_string(s.next().unwrap().to_string());
+    let id = load_u32(s.next().unwrap().to_string());
+    let str = load_i32(s.next().unwrap().to_string());
+    let skl = load_i32(s.next().unwrap().to_string());
+    let spd = load_i32(s.next().unwrap().to_string());
+    let hurt = load_i32(s.next().unwrap().to_string());
+    let stun = load_i32(s.next().unwrap().to_string());
+    let broke = load_i32(s.next().unwrap().to_string());
+    let ctrl = load_option_u32(s.next().unwrap().to_string());
+    let master = load_option_u32(s.next().unwrap().to_string());
+    let action = load_bool(s.next().unwrap().to_string());
+    let arm = load_bool(s.next().unwrap().to_string());
+    let wrist = load_bool(s.next().unwrap().to_string());
+    let leg = load_bool(s.next().unwrap().to_string());
+    let lock = load_bool(s.next().unwrap().to_string());
+    Unit {
+      name,
+      id,
+      str,
+      skl,
+      spd,
+      hurt,
+      stun,
+      broke,
+      ctrl,
+      master,
+      action,
+      arm,
+      wrist, 
+      leg,
+      lock,
+    }
+  }
+
+    
+  pub fn save(&self) -> String {
+    let mut s = String::new();
+    s += &save_string(self.name.clone());
+    s += &save_u32(self.id);
+    s += &save_i32(self.str);
+    s += &save_i32(self.skl);
+    s += &save_i32(self.spd);
+    s += &save_i32(self.hurt);
+    s += &save_i32(self.stun);
+    s += &save_i32(self.broke);
+    s += &save_option_u32(self.ctrl);
+    s += &save_option_u32(self.master);
+    s += &save_bool(self.action);
+    s += &save_bool(self.arm);
+    s += &save_bool(self.wrist);
+    s += &save_bool(self.leg);
+    s += &save_bool(self.lock);
+    s
+  }
+  
   pub fn new(name : &str, str : i32, skl : i32, spd : i32) -> Self {
     Self {
       name : name.to_string(),
@@ -114,6 +173,10 @@ impl Unit {
   0.max(self.spd - self.hurt_lv())
   }
 
+  pub fn hurt(&self) -> i32 {
+    self.hurt
+  }
+
   pub fn str_lv(&self) -> i32 {
   if self.str() == 0 {
     0
@@ -151,16 +214,24 @@ impl Unit {
   self.stun
   }
 
-  pub fn take_broke(&mut self) {
-    self.broke += 1;
-  }
-
   pub fn broke(&self) -> i32 {
     self.broke
   }
 
+  pub fn take_broke(&mut self) {
+    self.broke += 1;
+  }
+
+  pub fn clear_broke(&mut self) {
+    self.broke = 0;
+  }
+
   pub fn mastered_id(&self) -> Option<u32> {
-  self.master
+    self.master
+  }
+
+  pub fn ctrled_id(&self) -> Option<u32> {
+    self.ctrl
   }
 
   pub fn recover(&mut self) {
@@ -169,7 +240,6 @@ impl Unit {
     if self.stun > 0 {
       self.stun -= 1;
     }
-    self.broke = 0;
   }
 
   pub fn refresh_action(&mut self) {
@@ -321,11 +391,11 @@ impl Unit {
   }
 
   pub fn can_def(&self) -> bool {
-  !self.is_stun() && !self.wrist
+    !self.is_stun() && !self.wrist && self.str() > 0 && self.skl() > 0
   }
 
   pub fn can_untie(&self) -> bool {
-  !self.is_stun() && !self.wrist && !self.leg && !self.arm && !self.lock
+    !self.is_stun() && !self.wrist && !self.leg && !self.arm && !self.lock && self.skl() > 0
   }
 
   pub fn can_ctrl_w(&self, ut : &Unit) -> bool {
@@ -337,10 +407,22 @@ impl Unit {
     } else if ut.restrain() {
       true
     } else if ut.struggle_lv() == 0 || u.str_lv() - ut.struggle_lv() >= 2 {
-      ut.can_stand() == false || u.skl_lv() >= ut.spd_lv()
+      true // ut.can_stand() == false || u.skl_lv() >= ut.spd_lv()
     } else {
       false
     }
+  }
+
+  pub fn tie_point(&self, ut:&Unit) -> i32 {
+    let u = &self;
+    let point = if u.skl() == 0 {
+      0
+    } else if u.skl() >= 10 && (ut.stun() > 0 || ut.antibound_lv() + 2 - u.str_lv() <= 0) {
+      2
+    } else {
+      1
+    };
+    point
   }
 
   pub fn can_untie_self(&self) -> bool {
@@ -360,11 +442,11 @@ impl Unit {
   }
 
   pub fn antibound_lv(&self) -> i32 {
-  if self.is_stun() {
-    get_lv(self.str()/2)
-  } else {
-    self.str_lv()
-  }
+    if self.is_stun() {
+      0
+    } else {
+      self.struggle_lv()
+    }
   }
 
   pub fn evd_lv(&self) -> i32 {

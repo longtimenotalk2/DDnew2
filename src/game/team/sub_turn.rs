@@ -7,8 +7,9 @@ use super::*;
 
 impl Team {
   pub fn sub_turn(&mut self, o : bool, ai_1 : bool) -> bool {
+    self.save_to_file().unwrap();
     if let Some((team, ids, can_wait)) = self.get_choose_unit() {
-      if o {print!("{}", self.state_ids(&ids))}
+      if o {self.draw(&ids)}
       let idq = if ai_1 && team == 1 {
         Some(self.ai_unit(&ids))
       } else {
@@ -31,31 +32,6 @@ impl Team {
       false
     }
   }
-
-  pub fn state_ids(&self, ids : &[u32]) -> String {
-    let mut s = String::new();
-    writeln!(s, "第{:^3}回合, 力 技 速(伤,  状态   束缚)", self.turn).unwrap();
-    for p in &self.board {
-      let sh = if p.unit.action() {
-        if p.unit.can_select() {
-          if ids.contains(&p.id){
-            ">"
-          }else if self.next_ids.contains(&p.id) {
-            "|"
-          } else {
-            "·"
-          }
-        } else {
-          "x"
-        }
-          
-      } else {
-        " "
-      };
-      writeln!(s, "{sh}{}", p.unit.state()).unwrap();
-    }
-    s
-  }
   
   fn skill_choose(&self, id : u32) -> Vec<Skill> {
     let p = self.id_pos(id);
@@ -76,6 +52,8 @@ impl Team {
     let p = self.id_pos(id);
     let mut s = String::new();
   self.pos_pawn_mut(p).unwrap().unit.finish();
+    let u = &mut self.pos_pawn_mut(p).unwrap().unit;
+    u.clear_broke();
     let u = &self.pos_pawn(p).unwrap().unit;
     match skill {
       // 略过
@@ -157,8 +135,7 @@ impl Team {
     };
     let u = &self.pos_pawn(p).unwrap().unit;
     let ut = &self.pos_pawn(pt).unwrap().unit;
-    let back = ut.mastered();
-    let ana = attack_analyse(u, ut,tp, back);
+    let ana = attack_analyse(u, ut,tp);
     let hit_rate = ana.hit;
     let cri_rate = ana.cri;
     let can_pierce = ana.pierce;
@@ -228,7 +205,7 @@ impl Team {
     let ut = &mut self.pos_pawn_mut(pt).unwrap().unit;
     ut.take_dmg(dmg);
     ut.take_broke();
-    if stun > 0 {
+    if stun > 0 || ut.str() == 0 {
       ut.take_stun(stun);
       self.cancel_ctrl(pt);
     }
