@@ -4,6 +4,9 @@ use crate::wyrand::Dice;
 use game::unit::Unit;
 use game::team::Team;
 
+use std::time::SystemTime;
+use std::time::UNIX_EPOCH;
+
 
 
 fn test5() {
@@ -65,18 +68,17 @@ fn roll_attr(a : i32, dice : &mut Dice ) -> Vec<i32> {
     attrs
 }
 
-fn test8() {
+fn test8(seed : u64, dif : i32) {
     let mut names = vec!["星", "三月七", "艾丝妲", "娜塔莎", "希尔", "布洛妮", "佩拉", "姬子", "黑塔", "克拉拉", "虎克", "御空", "停云", "符玄", "青雀", "素裳", "桂乃芬", "寒鸦", "希露瓦", "可利亚", "玲可", "阮梅", "雪衣", "藿藿", "静流", "托帕", "卡芙卡", "银狼", "白露"];
 
     let a = 30;
     let b = 25;
     let c = 20;
     let d = 15;
-    let df1 = 2;
+    let df1 = dif;
     let n0 = [d, c, b, a];
     let n1 = [a+df1, b+df1, c+df1, d+df1];
 
-    let seed = 114526;
     let mut di = Dice::new(seed);
 
     let mut t0 = vec!();
@@ -111,20 +113,55 @@ fn test0() {
     team.play();
 }
 
+fn random_start() {
+    let mut selection = vec!(1,2,3,4,5,6,7,8);
+    let path = &"save0.did";
+    use std::fs::File;
+    use std::io;
+    if File::open(path).is_ok() {
+        selection.push(0);
+        println!("0 : 继续之前的进度");
+    }
+    println!("新游戏：");
+    println!("1 : 非常容易");
+    println!("2 : 容易");
+    println!("3 : 较容易");
+    println!("4 : 一般");
+    println!("5 : 较难");
+    println!("6 : 难");
+    println!("7 : 艰难");
+    println!("8 : 极难");
+    
+    
+    let mut s = -1;
+    loop {
+      let mut ops = String::new();
+      io::stdin().read_line(&mut ops).expect("failed to read line");
+      if let Ok(op) = ops.trim().parse::<i32>() {
+        if selection.contains(&op) {
+          s = op;
+          break;
+        }else {
+          println!("输入错误,请输入所给选项前面的数字");
+        }
+      }else {
+        println!("输入错误,请输入一个自然数");
+      }
+    }
+    if s > 0 {
+        Team::delete_file();
+    }
+    let time = SystemTime::now();
+    let seed = time.duration_since(UNIX_EPOCH).unwrap().as_secs() as u64;
+    test8(seed, s-4);
+    
+}
+
 
 fn main() {
     println!("Hello, world!");
-    test8();
+    // test8();
 
-    // use game::file::*;
-
-    // let a = save_vec_u32(vec!());
-    // let b = load_vec_u32(a);
-    // dbg!(&b);
-
-    // let mut a = Unit::new("艾丝妲", 5, 5, 5);
-    // a.take_ctrl(1);
-    // let s = a.save();
-    // let b = Unit::load(s);
-    // dbg!(b);
+    random_start();
+    
 }
