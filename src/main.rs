@@ -72,11 +72,11 @@ fn test8() {
     let b = 25;
     let c = 20;
     let d = 15;
-    let df1 = 4;
+    let df1 = 2;
     let n0 = [d, c, b, a];
     let n1 = [a+df1, b+df1, c+df1, d+df1];
 
-    let seed = 114525;
+    let seed = 114526;
     let mut di = Dice::new(seed);
 
     let mut t0 = vec!();
@@ -114,7 +114,7 @@ fn test0() {
 
 fn main() {
     println!("Hello, world!");
-    test6();
+    test8();
 
     // use game::file::*;
 

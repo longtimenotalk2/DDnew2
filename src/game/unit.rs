@@ -413,6 +413,18 @@ impl Unit {
     }
   }
 
+  pub fn tie_point(&self, ut:&Unit) -> i32 {
+    let u = &self;
+    let point = if u.skl() == 0 {
+      0
+    } else if u.skl() >= 10 && (ut.stun() > 0 || ut.antibound_lv() + 2 - u.str_lv() <= 0) {
+      2
+    } else {
+      1
+    };
+    point
+  }
+
   pub fn can_untie_self(&self) -> bool {
   !self.is_stun() && !self.wrist
   }
@@ -433,7 +445,7 @@ impl Unit {
     if self.is_stun() {
       0
     } else {
-      self.str_lv()
+      self.struggle_lv()
     }
   }
 

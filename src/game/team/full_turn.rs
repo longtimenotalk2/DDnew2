@@ -58,13 +58,7 @@ impl Team {
       if let Some(it) = u.mastered_id() {
       let pt = self.id_pos(it);
       let ut = &self.pos_pawn(pt).unwrap().unit;
-      let point = if u.skl() == 0 {
-        0
-      } else if u.skl() >= 10 && (ut.stun() > 0 || ut.antibound_lv() + 2 - u.str_lv() <= 0) {
-        2
-      } else {
-        1
-      };
+      let point = u.tie_point(ut);
       if point == 0 {
         s += "技术为0，无法捆绑\n";
       } else {

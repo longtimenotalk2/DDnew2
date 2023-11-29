@@ -66,8 +66,10 @@ impl Team {
           println!("{} : 踢腿 -> {} (命{}% 穿{pir} 爆{} 伤{})", i, u.name, ana.hit, ana.cri, ana.dmg_normal);
         },
         Skill::Ctrl(p) => {
-          let u = &self.pos_pawn(*p).unwrap().unit;
-          println!("{} : 压制并捆绑 -> {}", i, u.name);
+          let u = &self.id2pw(id).unit;
+          let ut = &self.p2pw(*p).unit;
+          let point = u.tie_point(ut);
+          println!("{} : 压制并捆绑 -> {} : {}层", i, ut.name, point);
         },
         Skill::Untie(p) => {
           let u = &self.pos_pawn(*p).unwrap().unit;
@@ -80,7 +82,10 @@ impl Team {
           println!("{} : 挣脱束缚", i);
         },
         Skill::CtnCtrl => {
-          println!("{} : 维持压制", i);
+          let u = &self.id2pw(id).unit;
+          let ut = &self.id2pw(u.mastered_id().unwrap()).unit;
+          let point = u.tie_point(ut);
+          println!("{} : 维持压制 -> {} : {}层", i, ut.name, point);
         },
         Skill::Pass => {
           println!("{} : 放弃行动", i);
@@ -122,7 +127,11 @@ impl Team {
       let namet = &self.id2pw(idt).unit.name;
       write!(s, "{namet}:").unwrap();
       if skls.contains(&Skill::Ctrl(pt)) {
+        let u = &self.id2pw(id).unit;
+        let ut = &self.id2pw(idt).unit;
+        let point = u.tie_point(ut);
         s += "控";
+        s += &format!("{}", point);
       }
       let u = &self.pos_pawn(self.id_pos(id)).unwrap().unit;
       let ut = &self.pos_pawn(self.id_pos(idt)).unwrap().unit;
@@ -160,4 +169,5 @@ impl Team {
     s
   }
 }
+
 
